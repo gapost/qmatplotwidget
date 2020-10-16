@@ -1,5 +1,6 @@
 #include "QMatPlotWidget.h"
 #include <QApplication>
+#include <QLayout>
 
 typedef QVector<qreal> Vector;
 
@@ -8,6 +9,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     QMatPlotWidget w;
     w.setWindowTitle("QMatPlotWidget Example: simpleplot");
+    w.layout()->setMargin(20);
     w.show();
 
     const int N = 40;
