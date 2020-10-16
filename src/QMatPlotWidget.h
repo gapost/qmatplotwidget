@@ -4,6 +4,8 @@
 #include <QVector>
 #include <QWidget>
 
+class QMenu;
+
 class  QMatPlotWidget : public QWidget
 {
     Q_OBJECT
@@ -17,10 +19,20 @@ class  QMatPlotWidget : public QWidget
     Q_PROPERTY(bool timeScaleY READ timeScaleY WRITE setTimeScaleY)
     Q_PROPERTY(bool logScaleX READ logScaleX WRITE setLogScaleX)
     Q_PROPERTY(bool logScaleY READ logScaleY WRITE setLogScaleY)
+    Q_PROPERTY(AxisScale axisScaleX READ axisScaleX WRITE setAxisScaleX)
+    Q_PROPERTY(AxisScale axisScaleY READ axisScaleY WRITE setAxisScaleY)
     Q_PROPERTY(bool grid READ grid WRITE setGrid)
     Q_PROPERTY(QPointF xlim READ xlim WRITE setXlim)
     Q_PROPERTY(QPointF ylim READ ylim WRITE setYlim)
     Q_PROPERTY(QVector<QColor> colorOrder READ colorOrder WRITE setColorOrder)
+
+public:
+    enum AxisScale {
+        Linear,
+        Log,
+        Time
+    };
+    Q_ENUM(AxisScale)
 
 public:
     explicit QMatPlotWidget(QWidget* parent = 0);
@@ -32,10 +44,14 @@ public:
     QString ylabel() const;
     bool autoScaleX() const;
     bool autoScaleY() const;
-    bool timeScaleX() const { return timeScaleX_; }
-    bool timeScaleY() const { return timeScaleY_; }
-    bool logScaleX() const { return logScaleX_; }
-    bool logScaleY() const { return logScaleY_; }
+    AxisScale axisScaleX() const { return axisScaleX_; }
+    AxisScale axisScaleY() const { return axisScaleY_; }
+    bool timeScaleX() const { return axisScaleX_==Time; }
+    bool timeScaleY() const { return axisScaleY_==Time; }
+    bool logScaleX() const { return axisScaleX_==Log; }
+    bool logScaleY() const { return axisScaleY_==Log; }
+    bool linScaleX() const { return axisScaleX_==Linear; }
+    bool linScaleY() const { return axisScaleY_==Linear; }
     bool grid() const { return grid_on_; }
     QPointF xlim() const;
     QPointF ylim() const;
@@ -45,17 +61,11 @@ public:
     void setTitle(const QString& s);
     void setXlabel(const QString& s);
     void setYlabel(const QString& s);
-    void setAutoScaleX(bool on);
-    void setAutoScaleY(bool on);
-    void setTimeScaleX(bool on);
-    void setTimeScaleY(bool on);
-    void setLogScaleX(bool on);
-    void setLogScaleY(bool on);
-    void setGrid(bool on);
+
+
     void setXlim(const QPointF& v);
     void setYlim(const QPointF& v);
     void setColorOrder(const QVector<QColor>& c);
-
 
     // QWidget overrides
     QSize sizeHint () const override;
@@ -65,11 +75,42 @@ public slots:
     void clear();
     void replot();
 
+    // slot setters
+    void setAutoScaleX(bool on);
+    void setAutoScaleY(bool on);
+    void setAxisScaleX(AxisScale sc);
+    void setAxisScaleY(AxisScale sc);
+    void setTimeScaleX(bool on);
+    void setTimeScaleY(bool on);
+    void setLogScaleX(bool on);
+    void setLogScaleY(bool on);
+    void setLinearScaleX(bool on);
+    void setLinearScaleY(bool on);
+    void setGrid(bool on);
+
 public:
     template<class VectorType>
-    void plot(const VectorType& x, const VectorType& y, const QString &attr = QString(), const QColor& clr = QColor());
+    void plot(const VectorType& x, const VectorType& y,
+              const QString &attr = QString(), const QColor& clr = QColor());
     template<class VectorType>
-    void plot(const VectorType& y, const QString &attr = QString(), const QColor& clr = QColor());
+    void plot(const VectorType& y,
+              const QString &attr = QString(), const QColor& clr = QColor());
+
+    class AbstractDataSeries
+    {
+    public:
+        virtual ~AbstractDataSeries() {}
+        virtual int size() const = 0;
+        virtual QPointF sample(int i) const = 0;
+        virtual QRectF boundingRect() const = 0;
+    };
+
+    friend class DataHelper;
+
+    void plotDataSeries(AbstractDataSeries* d, const QString &attr, const QColor& clr);
+
+protected:
+    virtual QMenu* createAxisContextMenu(int axisid);
 
 private:
 
@@ -77,26 +118,13 @@ private:
     Implementation* const impl_;
     friend class Implementation;
 
-    bool timeScaleX_, timeScaleY_,
-        logScaleX_, logScaleY_, grid_on_;
+    AxisScale axisScaleX_, axisScaleY_;
+    bool grid_on_;
 
     QVector<QColor> colorOrder_;
     int colorIndex_;
 
-    //template<class VectorType> class DataSeries;
 
-    class AbstractDataSeries
-    {
-    public:
-        virtual ~AbstractDataSeries() {}
-        virtual size_t size() const = 0;
-        virtual QPointF sample(size_t i) const = 0;
-        virtual QRectF boundingRect() const = 0;
-    };
-
-    friend class DataHelper;
-
-    void plot_(AbstractDataSeries* d, const QString &attr, const QColor& clr);
 };
 
 template<class V_>
@@ -107,8 +135,8 @@ public:
     explicit SingleDataSeries_(const V_& y) : vy(y)
     {
     }
-    size_t size() const override { return vy.size(); }
-    QPointF sample( size_t i ) const override { return QPointF(1.*i,vy[i]); }
+    int size() const override { return vy.size(); }
+    QPointF sample( int i ) const override { return QPointF(1.*i,vy[i]); }
     QRectF boundingRect() const override
     {
         if (!size()) return QRectF();
@@ -127,7 +155,7 @@ void QMatPlotWidget::plot(const VectorType& y, const QString &attr, const QColor
 {
     typedef SingleDataSeries_<VectorType> mydatat;
     mydatat* data = new mydatat(y);
-    plot_(data,attr,clr);
+    plotDataSeries(data,attr,clr);
 }
 
 
@@ -143,8 +171,8 @@ public:
     DataSeries_(const DataSeries_& other) : vx(other.vx), vy(other.vy)
     {
     }
-    size_t size() const override { return qMin(vx.size(),vy.size()); }
-    QPointF sample( size_t i ) const override
+    int size() const override { return qMin(vx.size(),vy.size()); }
+    QPointF sample( int i ) const override
     {
         return QPointF(vx[i],vy[i]);
     }
@@ -170,7 +198,7 @@ template<class VectorType>
 void QMatPlotWidget::plot(const VectorType& x, const VectorType& y, const QString &attr, const QColor& clr)
 {
     DataSeries_<VectorType>* data = new DataSeries_<VectorType>(x,y);
-    plot_(data,attr,clr);
+    plotDataSeries(data,attr,clr);
 }
 
 

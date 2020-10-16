@@ -8,6 +8,7 @@
 #include <QRegularExpression>
 #include <QDateTime>
 #include <QVBoxLayout>
+#include <QMenu>
 
 #include <qwt_plot.h>
 #include <qwt_plot_canvas.h>
@@ -39,127 +40,6 @@ struct LineSpec
 
 void parseMatlabLineSpec(const QString& attr, LineSpec& opt);
 
-class ScalePicker: public QObject
-{
-
-public:
-    ScalePicker( QwtPlot *plot )
-    {
-        for ( uint i = 0; i < QwtPlot::axisCnt; i++ )
-        {
-            QwtScaleWidget *scaleWidget = plot->axisWidget( i );
-            if ( scaleWidget )
-                scaleWidget->installEventFilter( this );
-        }
-    }
-
-    bool eventFilter( QObject * object, QEvent * event) override
-    {
-        if ( event->type() == QEvent::MouseButtonPress ||
-             event->type() == QEvent::MouseButtonRelease ||
-             event->type() == QEvent::MouseMove )
-        {
-            QwtScaleWidget *scaleWidget = qobject_cast<QwtScaleWidget *>( object );
-            if ( scaleWidget )
-            {
-                QMouseEvent *mouseEvent = static_cast<QMouseEvent *>( event );
-                mouseClicked( scaleWidget, mouseEvent );
-
-                return true;
-            }
-        }
-
-        return QObject::eventFilter( object, event );
-    }
-
-private:
-    void mouseClicked( const QwtScaleWidget * scale, QMouseEvent * event)
-    {
-        const QPoint & pos = event->pos();
-        QRect rect = scaleRect( scale );
-
-        int margin = 10; // 10 pixels tolerance
-        rect.setRect( rect.x() - margin, rect.y() - margin,
-            rect.width() + 2 * margin, rect.height() +  2 * margin );
-
-        if ( rect.contains( pos ) ) // No click on the title
-        {
-            // translate the position in a value on the scale
-
-            double value = 0.0;
-            int axis = -1;
-
-            const QwtScaleDraw *sd = scale->scaleDraw();
-            switch( scale->alignment() )
-            {
-                case QwtScaleDraw::LeftScale:
-                {
-                    value = sd->scaleMap().invTransform( pos.y() );
-                    axis = QwtPlot::yLeft;
-                    break;
-                }
-                case QwtScaleDraw::RightScale:
-                {
-                    value = sd->scaleMap().invTransform( pos.y() );
-                    axis = QwtPlot::yRight;
-                    break;
-                }
-                case QwtScaleDraw::BottomScale:
-                {
-                    value = sd->scaleMap().invTransform( pos.x() );
-                    axis = QwtPlot::xBottom;
-                    break;
-                }
-                case QwtScaleDraw::TopScale:
-                {
-                    value = sd->scaleMap().invTransform( pos.x() );
-                    axis = QwtPlot::xTop;
-                    break;
-                }
-            }
-            qDebug() << "Mouse " << event->type() << " on axis " << axis << ", v=" << value;
-        }
-    }
-    QRect scaleRect( const QwtScaleWidget * scale) const
-    {
-        const int bld = scale->margin();
-        const int mjt = qCeil( scale->scaleDraw()->maxTickLength() );
-        const int sbd = scale->startBorderDist();
-        const int ebd = scale->endBorderDist();
-
-        QRect rect;
-        switch( scale->alignment() )
-        {
-            case QwtScaleDraw::LeftScale:
-            {
-                rect.setRect( scale->width() - bld - mjt, sbd,
-                    mjt, scale->height() - sbd - ebd );
-                break;
-            }
-            case QwtScaleDraw::RightScale:
-            {
-                rect.setRect( bld, sbd,
-                    mjt, scale->height() - sbd - ebd );
-                break;
-            }
-            case QwtScaleDraw::BottomScale:
-            {
-                rect.setRect( sbd, bld,
-                    scale->width() - sbd - ebd, mjt );
-                break;
-            }
-            case QwtScaleDraw::TopScale:
-            {
-                rect.setRect( sbd, scale->height() - bld - mjt,
-                    scale->width() - sbd - ebd, mjt );
-                break;
-            }
-        }
-        return rect;
-    }
-};
-
-
 class FormattedPicker : public QwtPlotPicker
 {
 public:
@@ -169,7 +49,7 @@ public:
     {
     }
 protected:
-    virtual QwtText trackerTextF	(	const QPointF & 	pos	 ) const
+    QwtText trackerTextF	(	const QPointF & 	pos	 ) const override
     {
     //Since the "paintAttributes", [text+background colour] act on QwtTexts
     //break up the creation of trackerTextF: one function to create the text
@@ -197,14 +77,10 @@ class Zoomer: public QwtPlotZoomer
 public:
     Zoomer(int xAxis, int yAxis, QWidget *canvas):
         QwtPlotZoomer(xAxis, yAxis, canvas)
-    {
-        //setMaxStackDepth(1);
-    }
+    {}
 protected:
-    virtual void begin ()
+    void begin () override
     {
-        //const QwtDoubleRect &rect = scaleRect();
-        //const QwtDoubleRect &brect = zoomBase();
         if (zoomRectIndex()==0)
         {
             setZoomBase(false);
@@ -223,11 +99,11 @@ protected:
 
         QwtPlotZoomer::begin();
     }
-    virtual bool end (bool ok=true)
+    bool end (bool ok=true) override
     {
         return QwtPlotZoomer::end(ok);
     }
-    virtual void widgetMouseDoubleClickEvent (QMouseEvent *)
+    void widgetMouseDoubleClickEvent (QMouseEvent *) override
     {
         QwtPlot *plt = plot();
         if ( !plt ) return;
@@ -242,10 +118,7 @@ protected:
 class TimeScaleDraw: public QwtScaleDraw
 {
 public:
-    TimeScaleDraw()
-    {
-    }
-    virtual QwtText label(double secsSinceEpoch) const
+    QwtText label(double secsSinceEpoch) const override
     {
         QDateTime dt = QDateTime::fromMSecsSinceEpoch(1000*secsSinceEpoch);
         return dt.toString("hh:mm:ss");
@@ -255,10 +128,7 @@ public:
 class SciScaleDraw: public QwtScaleDraw
 {
 public:
-    SciScaleDraw()
-    {
-    }
-    virtual QwtText label(double v) const
+    QwtText label(double v) const override
     {
         return QString::number(v,'g');
     }
@@ -277,8 +147,8 @@ protected:
         return C;
     }
 public:
-    virtual void autoScale(int maxSteps,
-        double &x1, double &x2, double &stepSize) const
+    void autoScale(int maxSteps,
+        double &x1, double &x2, double &stepSize) const override
     {
         double C = conversion_factor(fabs(x2-x1));
         x1 /= C; x2 /= C; // convert to  s,m,hr,d ...
@@ -287,16 +157,123 @@ public:
     }
 };
 
+
+
 class QMatPlotWidget::Implementation : public QwtPlot
 {
 public:
+    class ScalePicker: public QObject
+    {
+        QMatPlotWidget::Implementation* mPlot_;
+    public:
+        ScalePicker( QMatPlotWidget::Implementation *plot ) : QObject(plot),
+            mPlot_(plot)
+        {
+            for ( uint i = 0; i < QwtPlot::axisCnt; i++ )
+            {
+                QwtScaleWidget *scaleWidget = plot->axisWidget( i );
+                if ( scaleWidget )
+                    scaleWidget->installEventFilter( this );
+            }
+        }
+
+        bool eventFilter( QObject * object, QEvent * event) override
+        {
+            if ( event->type() == QEvent::MouseButtonPress  )
+            {
+                QMouseEvent *mouseEvent = static_cast<QMouseEvent *>( event );
+                if (mouseEvent->button()==Qt::RightButton)
+                {
+                    QwtScaleWidget *scaleWidget = qobject_cast<QwtScaleWidget *>( object );
+                    if ( scaleWidget )
+                    {
+                        mouseClicked( scaleWidget, mouseEvent );
+                        return true;
+                    }
+                }
+            }
+            return QObject::eventFilter( object, event );
+        }
+
+        void mouseClicked( const QwtScaleWidget * scale, QMouseEvent * event)
+        {
+            const QPoint & pos = event->pos();
+            QRect rect = scaleRect( scale );
+
+            int margin = 10; // 10 pixels tolerance
+            rect.setRect( rect.x() - margin, rect.y() - margin,
+                          rect.width() + 2 * margin, rect.height() +  2 * margin );
+
+            if ( rect.contains( pos ) ) // No click on the title
+            {
+                int axis;
+                switch( scale->alignment() )
+                {
+                case QwtScaleDraw::LeftScale:
+                    axis = QwtPlot::yLeft;
+                    break;
+                case QwtScaleDraw::RightScale:
+                    axis = QwtPlot::yRight;
+                    break;
+                case QwtScaleDraw::BottomScale:
+                    axis = QwtPlot::xBottom;
+                    break;
+                case QwtScaleDraw::TopScale:
+                    axis = QwtPlot::xTop;
+                    break;
+                }
+                //qDebug() << "Mouse " << event->type() << " on axis " << axis << ", v=" << value;
+                QMenu* menu = mPlot_->mMatPlot_->createAxisContextMenu(axis);
+                menu->exec(scale->mapToGlobal(pos));
+            }
+        }
+        QRect scaleRect( const QwtScaleWidget * scale) const
+        {
+            const int bld = scale->margin();
+            const int mjt = qCeil( scale->scaleDraw()->maxTickLength() );
+            const int sbd = scale->startBorderDist();
+            const int ebd = scale->endBorderDist();
+
+            QRect rect;
+            switch( scale->alignment() )
+            {
+                case QwtScaleDraw::LeftScale:
+                {
+                    rect.setRect( scale->width() - bld - mjt, sbd,
+                        mjt, scale->height() - sbd - ebd );
+                    break;
+                }
+                case QwtScaleDraw::RightScale:
+                {
+                    rect.setRect( bld, sbd,
+                        mjt, scale->height() - sbd - ebd );
+                    break;
+                }
+                case QwtScaleDraw::BottomScale:
+                {
+                    rect.setRect( sbd, bld,
+                        scale->width() - sbd - ebd, mjt );
+                    break;
+                }
+                case QwtScaleDraw::TopScale:
+                {
+                    rect.setRect( sbd, scale->height() - bld - mjt,
+                        scale->width() - sbd - ebd, mjt );
+                    break;
+                }
+            }
+            return rect;
+        }
+    };
     QwtPlotGrid* grid_;
     QwtPlotZoomer* zoomer;
     QwtPlotPanner* panner;
     QwtPlotPicker* picker;
     ScalePicker* scalepicker;
+    QMatPlotWidget* mMatPlot_;
 
-    Implementation(QWidget* parent) : QwtPlot(parent)
+    Implementation(QMatPlotWidget* parent) : QwtPlot(parent),
+        mMatPlot_(parent)
     {
         QwtPlotCanvas *cnv = new QwtPlotCanvas();
 
@@ -390,42 +367,32 @@ public:
         plotLayout()->setAlignCanvasToScales( true );
     }
 
-    void setTimeAxis(int axisid, bool on)
+    void setAxisScaling(int axisid, QMatPlotWidget::AxisScale sc)
     {
-        if (on)
+        switch (sc)
         {
+        case Linear:
+            setAxisScaleEngine(axisid, new QwtLinearScaleEngine());
+            setAxisScaleDraw(axisid, new SciScaleDraw());
+            break;
+        case Log:
+            setAxisScaleEngine(axisid, new QwtLogScaleEngine());
+            setAxisScaleDraw(axisid, new SciScaleDraw());
+            break;
+        case Time:
             setAxisScaleEngine(axisid, new TimeScaleEngine());
             setAxisScaleDraw(axisid, new TimeScaleDraw());
         }
-        else
-        {
-            setAxisScaleEngine(axisid, new QwtLinearScaleEngine());
-            setAxisScaleDraw(axisid, new SciScaleDraw());
-        }
     }
 
-    void setLogAxis(int axisid, bool on)
-    {
-        if (on)
-        {
-            setAxisScaleEngine(axisid, new QwtLogScaleEngine());
-            setAxisScaleDraw(axisid, new SciScaleDraw());
-        }
-        else
-        {
 
-            setAxisScaleEngine(axisid, new QwtLinearScaleEngine());
-            setAxisScaleDraw(axisid, new SciScaleDraw());
-        }
-    }
 };
 
 
 QMatPlotWidget::QMatPlotWidget(QWidget* parent) :
     QWidget(parent),
     impl_(new Implementation(this)),
-    timeScaleX_(false), timeScaleY_(false),
-    logScaleX_(false),  logScaleY_(false),
+    axisScaleX_(Linear), axisScaleY_(Linear),
     grid_on_(false),
     colorIndex_(0)
 {
@@ -498,39 +465,47 @@ void QMatPlotWidget::setYlabel(const QString& s)
 }
 void QMatPlotWidget::setAutoScaleX(bool on)
 {
-    if (on) impl_->setAxisAutoScale(QwtPlot::xBottom);
+    impl_->setAxisAutoScale(QwtPlot::xBottom,on);
 }
 void QMatPlotWidget::setAutoScaleY(bool on)
 {
-    if (on) impl_->setAxisAutoScale(QwtPlot::yLeft);
+    impl_->setAxisAutoScale(QwtPlot::yLeft,on);
+}
+void QMatPlotWidget::setAxisScaleX(AxisScale sc)
+{
+    if (sc==axisScaleX_) return;
+    impl_->setAxisScaling(QwtPlot::xBottom, sc);
+    axisScaleX_ = sc;
+}
+void QMatPlotWidget::setAxisScaleY(AxisScale sc)
+{
+    if (sc==axisScaleY_) return;
+    impl_->setAxisScaling(QwtPlot::yLeft, sc);
+    axisScaleY_ = sc;
 }
 void QMatPlotWidget::setTimeScaleX(bool on)
 {
-    if (on==timeScaleX_) return;
-    if (on && logScaleX()) setLogScaleX(false);
-    impl_->setTimeAxis(QwtPlot::xBottom, on);
-    timeScaleX_ = on;
+    if (on != (axisScaleX_==Time)) setAxisScaleX(on ? Time : Linear);
 }
 void QMatPlotWidget::setTimeScaleY(bool on)
 {
-    if (on==timeScaleY_) return;
-    if (on && logScaleY()) setLogScaleY(false);
-    impl_->setTimeAxis(QwtPlot::yLeft, on);
-    timeScaleY_ = on;
+    if (on != (axisScaleY_==Time)) setAxisScaleY(on ? Time : Linear);
 }
 void QMatPlotWidget::setLogScaleX(bool on)
 {
-    if (on==logScaleX_) return;
-    if (on && timeScaleX()) setTimeScaleX(false);
-    impl_->setLogAxis(QwtPlot::xBottom, on);
-    logScaleX_ = on;
+    if (on != (axisScaleX_==Log)) setAxisScaleX(on ? Log : Linear);
 }
 void QMatPlotWidget::setLogScaleY(bool on)
 {
-    if (on==logScaleY_) return;
-    if (on && timeScaleY()) setTimeScaleY(false);
-    impl_->setLogAxis(QwtPlot::yLeft, on);
-    logScaleY_ = on;
+    if (on != (axisScaleY_==Log)) setAxisScaleY(on ? Log : Linear);
+}
+void QMatPlotWidget::setLinearScaleX(bool on)
+{
+    if (on != (axisScaleX_==Linear)) setAxisScaleX(on ? Linear : Log);
+}
+void QMatPlotWidget::setLinearScaleY(bool on)
+{
+    if (on != (axisScaleY_==Linear)) setAxisScaleY(on ? Linear : Log);
 }
 void QMatPlotWidget::setGrid(bool on)
 {
@@ -574,7 +549,7 @@ class DataHelper : public QwtSeriesData< QPointF >
     QRectF boundingRect() const override { return d->boundingRect(); }
 };
 
-void QMatPlotWidget::plot_(AbstractDataSeries* data, const QString &attr, const QColor &clr)
+void QMatPlotWidget::plotDataSeries(AbstractDataSeries* data, const QString &attr, const QColor &clr)
 {
     LineSpec opt;
     parseMatlabLineSpec(attr, opt);
@@ -631,6 +606,44 @@ QSize QMatPlotWidget::minimumSizeHint() const
 QSize QMatPlotWidget::sizeHint() const
 {
     return QSize(600, 450);
+}
+QMenu* QMatPlotWidget::createAxisContextMenu(int axisid)
+{
+    QMenu* menu = new QMenu(this);
+
+    bool isX = (axisid == QwtPlot::xBottom) || (axisid == QwtPlot::xTop);
+    QChar axChar = isX ? 'X' : 'Y';
+
+    QAction* a;
+    a = menu->addAction(QString("Auto Scale %1").arg(axChar),
+                        this,
+                        isX ? SLOT(setAutoScaleX(bool)) : SLOT(setAutoScaleY(bool)));
+    a->setCheckable(true);
+    a->setChecked(isX ? autoScaleX() : autoScaleY());
+
+    a = menu->addAction(QString("Linear Scale"),
+                        this,
+                        isX ? SLOT(setLinearScaleX(bool)) : SLOT(setLinearScaleY(bool)));
+    a->setCheckable(true);
+    a->setChecked(isX ? linScaleX() : linScaleY());
+
+    a = menu->addAction(QString("Log Scale"),
+                        this,
+                        isX ? SLOT(setLogScaleX(bool)) : SLOT(setLogScaleY(bool)));
+    a->setCheckable(true);
+    a->setChecked(isX ? logScaleX() : logScaleY());
+
+    a = menu->addAction(QString("Time Scale"),
+                        this,
+                        isX ? SLOT(setTimeScaleX(bool)) : SLOT(setTimeScaleY(bool)));
+    a->setCheckable(true);
+    a->setChecked(isX ? timeScaleX() : timeScaleY());
+
+    a = menu->addSeparator();
+
+    a = menu->addAction(QString("%1 Axis Properties").arg(axChar));
+
+    return menu;
 }
 
 void parseMatlabLineSpec(const QString& attr, LineSpec& opt)
@@ -715,4 +728,6 @@ void parseMatlabLineSpec(const QString& attr, LineSpec& opt)
 
 
 }
+
+
 
