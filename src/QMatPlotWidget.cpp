@@ -8,7 +8,14 @@
 #include <QRegularExpression>
 #include <QDateTime>
 #include <QVBoxLayout>
+#include <QFormLayout>
 #include <QMenu>
+#include <QDialogButtonBox>
+#include <QLabel>
+#include <QLineEdit>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QValidator>
 
 #include <qwt_plot.h>
 #include <qwt_plot_canvas.h>
@@ -625,7 +632,7 @@ QMenu* QMatPlotWidget::createAxisContextMenu(int axisid)
                         this,
                         isX ? SLOT(setLinearScaleX(bool)) : SLOT(setLinearScaleY(bool)));
     a->setCheckable(true);
-    a->setChecked(isX ? linScaleX() : linScaleY());
+    a->setChecked(isX ? linearScaleX() : linearScaleY());
 
     a = menu->addAction(QString("Log Scale"),
                         this,
@@ -641,9 +648,51 @@ QMenu* QMatPlotWidget::createAxisContextMenu(int axisid)
 
     a = menu->addSeparator();
 
-    a = menu->addAction(QString("%1 Axis Properties").arg(axChar));
+    a = menu->addAction(QString("%1 Axis Properties").arg(axChar),
+                        this,
+                        isX ? SLOT(xAxisPropDlg()) : SLOT(yAxisPropDlg()));
 
     return menu;
+}
+void QMatPlotWidget::axisPropertyDialog(int axisid)
+{
+    QMatPlotAxisDlg dlg(this);
+    bool isX = axisid==0;
+
+    dlg.edtTitle->setText(isX ? xlabel() : ylabel());
+    dlg.chkAutoScale->setChecked(isX ? autoScaleX() : autoScaleY());
+    QPointF lims = isX ? xlim() : ylim();
+    dlg.edtMinVal->setText(QString::number(lims.x()));
+    dlg.edtMaxVal->setText(QString::number(lims.y()));
+    dlg.cbAxisScale->setCurrentIndex(isX ? axisScaleX() : axisScaleY());
+
+    if (dlg.exec()==QDialog::Accepted)
+    {
+        if (isX)
+        {
+            setXlabel(dlg.edtTitle->text());
+            setAutoScaleX(dlg.chkAutoScale->isChecked());
+            if (!autoScaleX())
+            {
+                QPointF rng(dlg.edtMinVal->text().toDouble(),
+                            dlg.edtMaxVal->text().toDouble());
+                setXlim(rng);
+            }
+            setAxisScaleX((AxisScale(dlg.cbAxisScale->currentIndex())));
+        }
+        else
+        {
+            setYlabel(dlg.edtTitle->text());
+            setAutoScaleY(dlg.chkAutoScale->isChecked());
+            if (!autoScaleY())
+            {
+                QPointF rng(dlg.edtMinVal->text().toDouble(),
+                            dlg.edtMaxVal->text().toDouble());
+                setYlim(rng);
+            }
+            setAxisScaleY((AxisScale(dlg.cbAxisScale->currentIndex())));
+        }
+    }
 }
 
 void parseMatlabLineSpec(const QString& attr, LineSpec& opt)
@@ -727,6 +776,81 @@ void parseMatlabLineSpec(const QString& attr, LineSpec& opt)
         opt.penStyle = Qt::SolidLine;
 
 
+}
+
+/////////////////// QMatPlotAxisDlg ///////////////////////////
+
+QMatPlotAxisDlg::QMatPlotAxisDlg(QWidget *parent) : QDialog(parent)
+{
+     resize(260, 290);
+
+     QVBoxLayout* verticalLayout = new QVBoxLayout(this);
+     QFormLayout* formLayout = new QFormLayout();
+     QLabel* label;
+
+     label = new QLabel(this);
+     label->setText("Title");
+     formLayout->setWidget(0, QFormLayout::LabelRole, label);
+     edtTitle = new QLineEdit(this);
+     edtTitle->setObjectName(QStringLiteral("edtTitle"));
+     formLayout->setWidget(0, QFormLayout::FieldRole, edtTitle);
+
+     label = new QLabel(this);
+     label->setText("Autoscale");
+     formLayout->setWidget(1, QFormLayout::LabelRole, label);
+     chkAutoScale = new QCheckBox(this);
+     chkAutoScale->setObjectName(QStringLiteral("chkAutoScale"));
+     formLayout->setWidget(1, QFormLayout::FieldRole, chkAutoScale);
+
+     label = new QLabel(this);
+     label->setText("Min Value");
+     formLayout->setWidget(2, QFormLayout::LabelRole, label);
+     edtMinVal = new QLineEdit(this);
+     edtMinVal->setObjectName(QStringLiteral("edtMinVal"));
+     edtMinVal->setValidator(new QDoubleValidator(this));
+     formLayout->setWidget(2, QFormLayout::FieldRole, edtMinVal);
+
+     label = new QLabel(this);
+     label->setText("Max Value");
+     formLayout->setWidget(3, QFormLayout::LabelRole, label);
+     edtMaxVal = new QLineEdit(this);
+     edtMaxVal->setObjectName(QStringLiteral("edtMaxVal"));
+     edtMaxVal->setValidator(new QDoubleValidator(this));
+     formLayout->setWidget(3, QFormLayout::FieldRole, edtMaxVal);
+
+     label = new QLabel(this);
+     label->setText("Scale");
+     formLayout->setWidget(4, QFormLayout::LabelRole, label);
+     cbAxisScale = new QComboBox(this);
+     cbAxisScale->setObjectName(QStringLiteral("cbAxisScale"));
+     cbAxisScale->insertItems(0, QStringList()
+              << "Linear"
+              << "Log"
+              << "Time");
+     formLayout->setWidget(4, QFormLayout::FieldRole, cbAxisScale);
+
+     verticalLayout->addLayout(formLayout);
+
+     QDialogButtonBox* buttonBox = new QDialogButtonBox(this);
+     buttonBox->setObjectName(QStringLiteral("buttonBox"));
+     buttonBox->setOrientation(Qt::Horizontal);
+     buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+     buttonBox->setCenterButtons(false);
+
+     verticalLayout->addWidget(buttonBox);
+
+     setLayout(verticalLayout);
+
+     QObject::connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+     QObject::connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+     QObject::connect(chkAutoScale,SIGNAL(toggled(bool)), this, SLOT(onAutoScale(bool)));
+
+}
+
+void QMatPlotAxisDlg::onAutoScale(bool on)
+{
+    edtMinVal->setEnabled(!on);
+    edtMaxVal->setEnabled(!on);
 }
 
 

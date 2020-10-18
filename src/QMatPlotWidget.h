@@ -3,6 +3,7 @@
 
 #include <QVector>
 #include <QWidget>
+#include <QDialog>
 
 class QMenu;
 
@@ -19,6 +20,8 @@ class  QMatPlotWidget : public QWidget
     Q_PROPERTY(bool timeScaleY READ timeScaleY WRITE setTimeScaleY)
     Q_PROPERTY(bool logScaleX READ logScaleX WRITE setLogScaleX)
     Q_PROPERTY(bool logScaleY READ logScaleY WRITE setLogScaleY)
+    Q_PROPERTY(bool linearScaleX READ linearScaleX WRITE setLinearScaleX)
+    Q_PROPERTY(bool linearScaleY READ linearScaleY WRITE setLinearScaleY)
     Q_PROPERTY(AxisScale axisScaleX READ axisScaleX WRITE setAxisScaleX)
     Q_PROPERTY(AxisScale axisScaleY READ axisScaleY WRITE setAxisScaleY)
     Q_PROPERTY(bool grid READ grid WRITE setGrid)
@@ -28,7 +31,7 @@ class  QMatPlotWidget : public QWidget
 
 public:
     enum AxisScale {
-        Linear,
+        Linear = 0,
         Log,
         Time
     };
@@ -50,8 +53,8 @@ public:
     bool timeScaleY() const { return axisScaleY_==Time; }
     bool logScaleX() const { return axisScaleX_==Log; }
     bool logScaleY() const { return axisScaleY_==Log; }
-    bool linScaleX() const { return axisScaleX_==Linear; }
-    bool linScaleY() const { return axisScaleY_==Linear; }
+    bool linearScaleX() const { return axisScaleX_==Linear; }
+    bool linearScaleY() const { return axisScaleY_==Linear; }
     bool grid() const { return grid_on_; }
     QPointF xlim() const;
     QPointF ylim() const;
@@ -61,8 +64,6 @@ public:
     void setTitle(const QString& s);
     void setXlabel(const QString& s);
     void setYlabel(const QString& s);
-
-
     void setXlim(const QPointF& v);
     void setYlim(const QPointF& v);
     void setColorOrder(const QVector<QColor>& c);
@@ -111,6 +112,11 @@ public:
 
 protected:
     virtual QMenu* createAxisContextMenu(int axisid);
+    virtual void axisPropertyDialog(int axisid);
+
+protected slots:
+    void xAxisPropDlg() { axisPropertyDialog(0); }
+    void yAxisPropDlg() { axisPropertyDialog(1); }
 
 private:
 
@@ -200,6 +206,29 @@ void QMatPlotWidget::plot(const VectorType& x, const VectorType& y, const QStrin
     DataSeries_<VectorType>* data = new DataSeries_<VectorType>(x,y);
     plotDataSeries(data,attr,clr);
 }
+
+class QLineEdit;
+class QCheckBox;
+class QComboBox;
+
+class QMatPlotAxisDlg : public QDialog
+{
+    Q_OBJECT
+
+    QLineEdit* edtTitle;
+    QCheckBox* chkAutoScale;
+    QLineEdit* edtMinVal;
+    QLineEdit* edtMaxVal;
+    QComboBox* cbAxisScale;
+    friend class QMatPlotWidget;
+
+public:
+    QMatPlotAxisDlg(QWidget* parent);
+
+private slots:
+    void onAutoScale(bool on);
+
+};
 
 
 
