@@ -37,7 +37,7 @@
 
 struct LineSpec
 {
-    LineSpec() : penStyle(Qt::NoPen),
+    LineSpec() : penStyle(Qt::SolidLine),
         markerStyle(QwtSymbol::NoSymbol)
     {}
     Qt::PenStyle penStyle;
