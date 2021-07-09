@@ -2,6 +2,8 @@
 #include <QApplication>
 #include <QLayout>
 
+#include <cmath>
+
 typedef QVector<qreal> Vector;
 
 int main(int argc, char *argv[])
@@ -19,6 +21,8 @@ int main(int argc, char *argv[])
         x[i] = -1. + 2.*i/N;
         y1[i] = x[i]*x[i];
         y2[i] = y1[i]*x[i];
+        // test for NaN values
+        if (std::fabs(x[i])<0.25) y1[i] = NAN;
     }
 
     w.plot(x,y1,"o-");

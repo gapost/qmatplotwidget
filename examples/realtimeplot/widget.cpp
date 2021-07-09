@@ -1,8 +1,9 @@
 #include "widget.h"
+#include <cmath>
 
 #define N 121
 
-#define PI 3.141592654
+#define PI 3.141592653589793
 
 Widget::Widget(QWidget *parent) : QMatPlotWidget(parent),
     x(N+1), y(N+1), z(N+1)
