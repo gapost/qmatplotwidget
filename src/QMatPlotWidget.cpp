@@ -228,6 +228,9 @@ public:
                 case QwtScaleDraw::TopScale:
                     axis = QwtPlot::xTop;
                     break;
+                default:
+                    axis = QwtPlot::yLeft;
+                    break;
                 }
                 //qDebug() << "Mouse " << event->type() << " on axis " << axis << ", v=" << value;
                 QMenu* menu = mPlot_->mMatPlot_->createAxisContextMenu(axis);
@@ -490,30 +493,6 @@ void QMatPlotWidget::setAxisScaleY(AxisScale sc)
     impl_->setAxisScaling(QwtPlot::yLeft, sc);
     axisScaleY_ = sc;
 }
-void QMatPlotWidget::setTimeScaleX(bool on)
-{
-    if (on != (axisScaleX_==Time)) setAxisScaleX(on ? Time : Linear);
-}
-void QMatPlotWidget::setTimeScaleY(bool on)
-{
-    if (on != (axisScaleY_==Time)) setAxisScaleY(on ? Time : Linear);
-}
-void QMatPlotWidget::setLogScaleX(bool on)
-{
-    if (on != (axisScaleX_==Log)) setAxisScaleX(on ? Log : Linear);
-}
-void QMatPlotWidget::setLogScaleY(bool on)
-{
-    if (on != (axisScaleY_==Log)) setAxisScaleY(on ? Log : Linear);
-}
-void QMatPlotWidget::setLinearScaleX(bool on)
-{
-    if (on != (axisScaleX_==Linear)) setAxisScaleX(on ? Linear : Log);
-}
-void QMatPlotWidget::setLinearScaleY(bool on)
-{
-    if (on != (axisScaleY_==Linear)) setAxisScaleY(on ? Linear : Log);
-}
 void QMatPlotWidget::setGrid(bool on)
 {
     if (grid_on_==on) return;
@@ -628,21 +607,23 @@ QMenu* QMatPlotWidget::createAxisContextMenu(int axisid)
     a->setCheckable(true);
     a->setChecked(isX ? autoScaleX() : autoScaleY());
 
+    a = menu->addSeparator();
+
     a = menu->addAction(QString("Linear Scale"),
                         this,
-                        isX ? SLOT(setLinearScaleX(bool)) : SLOT(setLinearScaleY(bool)));
+                        isX ? SLOT(setLinearScaleX()) : SLOT(setLinearScaleY()));
     a->setCheckable(true);
     a->setChecked(isX ? linearScaleX() : linearScaleY());
 
     a = menu->addAction(QString("Log Scale"),
                         this,
-                        isX ? SLOT(setLogScaleX(bool)) : SLOT(setLogScaleY(bool)));
+                        isX ? SLOT(setLogScaleX()) : SLOT(setLogScaleY()));
     a->setCheckable(true);
     a->setChecked(isX ? logScaleX() : logScaleY());
 
     a = menu->addAction(QString("Time Scale"),
                         this,
-                        isX ? SLOT(setTimeScaleX(bool)) : SLOT(setTimeScaleY(bool)));
+                        isX ? SLOT(setTimeScaleX()) : SLOT(setTimeScaleY()));
     a->setCheckable(true);
     a->setChecked(isX ? timeScaleX() : timeScaleY());
 

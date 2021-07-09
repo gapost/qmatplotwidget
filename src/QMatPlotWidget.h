@@ -16,12 +16,6 @@ class  QMatPlotWidget : public QWidget
     Q_PROPERTY(QString ylabel READ ylabel WRITE setYlabel)
     Q_PROPERTY(bool autoScaleX READ autoScaleX WRITE setAutoScaleX)
     Q_PROPERTY(bool autoScaleY READ autoScaleY WRITE setAutoScaleY)
-    Q_PROPERTY(bool timeScaleX READ timeScaleX WRITE setTimeScaleX)
-    Q_PROPERTY(bool timeScaleY READ timeScaleY WRITE setTimeScaleY)
-    Q_PROPERTY(bool logScaleX READ logScaleX WRITE setLogScaleX)
-    Q_PROPERTY(bool logScaleY READ logScaleY WRITE setLogScaleY)
-    Q_PROPERTY(bool linearScaleX READ linearScaleX WRITE setLinearScaleX)
-    Q_PROPERTY(bool linearScaleY READ linearScaleY WRITE setLinearScaleY)
     Q_PROPERTY(AxisScale axisScaleX READ axisScaleX WRITE setAxisScaleX)
     Q_PROPERTY(AxisScale axisScaleY READ axisScaleY WRITE setAxisScaleY)
     Q_PROPERTY(bool grid READ grid WRITE setGrid)
@@ -81,13 +75,16 @@ public slots:
     void setAutoScaleY(bool on);
     void setAxisScaleX(AxisScale sc);
     void setAxisScaleY(AxisScale sc);
-    void setTimeScaleX(bool on);
-    void setTimeScaleY(bool on);
-    void setLogScaleX(bool on);
-    void setLogScaleY(bool on);
-    void setLinearScaleX(bool on);
-    void setLinearScaleY(bool on);
     void setGrid(bool on);
+
+    // helpers
+    void setTimeScaleX()   { setAxisScaleX(Time); }
+    void setTimeScaleY()   { setAxisScaleY(Time); }
+    void setLogScaleX()    { setAxisScaleX(Log); }
+    void setLogScaleY()    { setAxisScaleY(Log); }
+    void setLinearScaleX() { setAxisScaleX(Linear); }
+    void setLinearScaleY() { setAxisScaleY(Linear); }
+
 
 public:
     template<class VectorType>
