@@ -1,5 +1,8 @@
 # QMatPlotWidget
 
+> part of **QDaq** (https://gitlab.com/qdaq/qdaq) - Qt-based Data Acquisition
+>
+
 A Qt plot widget with a MATLAB/OCTAVE-like interface. 
 
 ```c++
