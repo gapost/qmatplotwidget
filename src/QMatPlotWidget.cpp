@@ -16,6 +16,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QValidator>
+#include <QtMath>
 
 #include <qwt_plot.h>
 #include <qwt_plot_canvas.h>
