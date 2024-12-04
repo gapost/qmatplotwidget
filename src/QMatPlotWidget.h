@@ -66,6 +66,8 @@ public:
     QSize sizeHint () const override;
     QSize minimumSizeHint () const override;
 
+    bool exportToFile(const QString &fname, const QSize &sz = QSize());
+
 public slots:
     void clear();
     void replot();

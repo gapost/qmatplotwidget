@@ -17,12 +17,14 @@
 #include <QComboBox>
 #include <QValidator>
 #include <QtMath>
+#include <QScreen>
 
 #include <qwt_plot.h>
 #include <qwt_plot_canvas.h>
 #include <qwt_plot_curve.h>
 #include <qwt_plot_layout.h>
 #include <qwt_plot_dict.h>
+#include <qwt_plot_renderer.h>
 #include <qwt_series_data.h>
 #include <qwt_symbol.h>
 #include <qwt_scale_widget.h>
@@ -589,6 +591,21 @@ void QMatPlotWidget::replot()
 QSize QMatPlotWidget::minimumSizeHint() const
 {
     return QSize(400, 300);
+}
+
+bool QMatPlotWidget::exportToFile(const QString& fname, const QSize& sz)
+{
+    QwtPlotRenderer plotRenderer;
+    QSize szmm(sz);
+    if (szmm.isEmpty()) { // convert actual widget size to mm
+        QScreen* myScreen = screen();
+        szmm = size();
+        szmm.rwidth() = int(szmm.width()/myScreen->logicalDotsPerInchX()*25.4);
+        szmm.rheight() = int(szmm.height()/myScreen->logicalDotsPerInchY()*25.4);
+    }
+    return plotRenderer.exportTo(impl_,
+                          fname,
+                          szmm);
 }
 QSize QMatPlotWidget::sizeHint() const
 {
