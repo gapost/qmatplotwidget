@@ -9,6 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(QMATPLOTWIDGET_BUILD_EXAMPLES OFF)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
@@ -21,6 +23,8 @@ message(STATUS "Found Qwt ${QWT_VERSION_STRING} at ${QWT_INCLUDE_DIR}")
 add_subdirectory(src)
 
 # Examples.
-add_subdirectory(examples/realtimeplot)
-add_subdirectory(examples/simpleplot)
+if(QMATPLOTWIDGET_BUILD_EXAMPLES)
+    add_subdirectory(examples/realtimeplot)
+    add_subdirectory(examples/simpleplot)
+endif()
 
