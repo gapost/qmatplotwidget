@@ -1,11 +1,17 @@
 # QMatPlotWidget
 
+A Qt plot widget with a MATLAB/OCTAVE-like interface. 
+
 > part of **QDaq** (https://gitlab.com/qdaq/qdaq) - Qt-based Data Acquisition
 >
 
-A Qt plot widget with a MATLAB/OCTAVE-like interface. 
+![screenshot](./dist/Screenshot_20251023_143332.png)
+
+
 
 ```c++
+    #include "QMatPlotWidget.h"
+
     const int N = 40;
     QVector<double> x(N+1), y(N+1);
     for(int i=0; i<=N; ++i)
@@ -22,7 +28,9 @@ A Qt plot widget with a MATLAB/OCTAVE-like interface.
     w.show();
 ```
 
-The QMatPlotWidget class provides only the interface. The actual plotting is done with Qwt (https://qwt.sourceforge.io/) as a backend.
+The QMatPlotWidget class provides only the interface. 
+
+The actual plotting is done with `Qwt` (https://qwt.sourceforge.io/) as a backend.
 
 
 
