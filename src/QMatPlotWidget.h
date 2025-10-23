@@ -1,6 +1,8 @@
 #ifndef _QMATPLOTWIDGET_H_
 #define _QMATPLOTWIDGET_H_
 
+#include "DataAdaptors.h"
+
 #include <QVector>
 #include <QWidget>
 #include <QDialog>
@@ -21,7 +23,8 @@ class  QMatPlotWidget : public QWidget
     Q_PROPERTY(bool grid READ grid WRITE setGrid)
     Q_PROPERTY(QPointF xlim READ xlim WRITE setXlim)
     Q_PROPERTY(QPointF ylim READ ylim WRITE setYlim)
-    Q_PROPERTY(QVector<QColor> colorOrder READ colorOrder WRITE setColorOrder)
+    Q_PROPERTY(QVector<QRgb> colorOrder READ colorOrder WRITE setColorOrder)
+    Q_PROPERTY(QVector<QRgb> colorMap READ colorMap WRITE setColorMap)
 
 public:
     enum AxisScale {
@@ -30,6 +33,21 @@ public:
         Time
     };
     Q_ENUM(AxisScale)
+
+    enum ColorMapType { Viridis, Turbo, Jet, Gray };
+    Q_ENUM(ColorMapType)
+
+    struct LineSpec
+    {
+        //MATLAB-Octave-style markerstyles for reference (not all)
+        constexpr static const char *markers = "+o*.xsd^v>< ";
+        static const int nMarkers = 11;
+        int markerStyle{nMarkers}; // emty = no marker
+        Qt::PenStyle penStyle{Qt::SolidLine};
+        QColor clr;
+
+        static LineSpec fromMatlabLineSpec(const QString &attr);
+    };
 
 public:
     explicit QMatPlotWidget(QWidget* parent = 0);
@@ -52,7 +70,11 @@ public:
     bool grid() const { return grid_on_; }
     QPointF xlim() const;
     QPointF ylim() const;
-    QVector<QColor> colorOrder() const { return colorOrder_; }
+    QVector<QRgb> colorOrder() const { return colorOrder_; }
+    QVector<QRgb> colorMap() const { return colorMap_; }
+
+    static QVector<QRgb> colorMap(ColorMapType t, int n = 64);
+    static QVector<QRgb> defaultColorOrder();
 
     //setters
     void setTitle(const QString& s);
@@ -60,7 +82,9 @@ public:
     void setYlabel(const QString& s);
     void setXlim(const QPointF& v);
     void setYlim(const QPointF& v);
-    void setColorOrder(const QVector<QColor>& c);
+    void setColorOrder(const QVector<QRgb> &c);
+    void setColorMap(const QVector<QRgb> &c);
+    void setColorMap(ColorMapType t, int n = 64) { setColorMap(colorMap(t, n)); }
 
     // QWidget overrides
     QSize sizeHint () const override;
@@ -87,6 +111,7 @@ public slots:
     void setLinearScaleX() { setAxisScaleX(Linear); }
     void setLinearScaleY() { setAxisScaleY(Linear); }
 
+    void onAxisClicked(int axisid, const QPoint &pos);
 
 public:
     template<class VectorType>
@@ -95,115 +120,217 @@ public:
     template<class VectorType>
     void plot(const VectorType& y,
               const QString &attr = QString(), const QColor& clr = QColor());
+    template<class VectorType>
+    void stairs(const VectorType &x,
+                const VectorType &y,
+                const QString &attr = QString(),
+                const QColor &clr = QColor());
+    template<class VectorType>
+    void stairs(const VectorType &y, const QString &attr = QString(), const QColor &clr = QColor());
 
-    class AbstractDataSeries
-    {
-    public:
-        virtual ~AbstractDataSeries() {}
-        virtual int size() const = 0;
-        virtual QPointF sample(int i) const = 0;
-        virtual QRectF boundingRect() const = 0;
-    };
+    template<class VectorType>
+    void errorbar(const VectorType &y,
+                  const VectorType &dy,
+                  const QString &attr = QString(),
+                  const QColor &clr = QColor());
+    template<class VectorType>
+    void errorbar(const VectorType &x,
+                  const VectorType &y,
+                  const VectorType &dy,
+                  const QString &attr = QString(),
+                  const QColor &clr = QColor());
+    template<class VectorType>
+    void errorbar(const VectorType &y,
+                  double dy,
+                  const QString &attr = QString(),
+                  const QColor &clr = QColor());
+    template<class VectorType>
+    void errorbar(const VectorType &x,
+                  const VectorType &y,
+                  double dy,
+                  const QString &attr = QString(),
+                  const QColor &clr = QColor());
+    template<class VectorType>
+    void errorbar(const VectorType &x,
+                  const VectorType &y,
+                  const VectorType &dym,
+                  const VectorType &dyp,
+                  const QString &attr = QString(),
+                  const QColor &clr = QColor());
 
-    friend class DataHelper;
+    template<class VectorType>
+    void image(const VectorType &x, const VectorType &y, const VectorType &z, int columns);
+    template<class VectorType>
+    void image(const VectorType &z, int columns);
 
-    void plotDataSeries(AbstractDataSeries* d, const QString &attr, const QColor& clr);
+    template<class VectorType>
+    void imagesc(const VectorType &x, const VectorType &y, const VectorType &z, int columns);
+    template<class VectorType>
+    void imagesc(const VectorType &z, int columns);
+
+    struct Backend;
 
 protected:
     virtual QMenu* createAxisContextMenu(int axisid);
     virtual void axisPropertyDialog(int axisid);
+
+    void __plot__(AbstractDataSeries *d, const QString &attr, const QColor &clr);
+    void __errorbar__(AbstractErrorBarSeries *d, const QString &attr, const QColor &clr);
+    // void __image__(AbstractImageData *d, bool scale);
 
 protected slots:
     void xAxisPropDlg() { axisPropertyDialog(0); }
     void yAxisPropDlg() { axisPropertyDialog(1); }
 
 private:
+    //class Implementation;
+    //Implementation* const impl_;
+    //friend class Implementation;
 
-    class Implementation;
-    Implementation* const impl_;
-    friend class Implementation;
+    Backend *const backend_;
 
     AxisScale axisScaleX_, axisScaleY_;
     bool grid_on_;
 
-    QVector<QColor> colorOrder_;
+    QVector<QRgb> colorOrder_;
     int colorIndex_;
-
-
-};
-
-template<class V_>
-class SingleDataSeries_ : public QMatPlotWidget::AbstractDataSeries
-{
-    V_ vy;
-public:
-    explicit SingleDataSeries_(const V_& y) : vy(y)
-    {
-    }
-    int size() const override { return vy.size(); }
-    QPointF sample( int i ) const override { return QPointF(1.*i,vy[i]); }
-    QRectF boundingRect() const override
-    {
-        if (!size()) return QRectF();
-        qreal y1(vy[0]), y2(y1);
-        for(int i=1; i<size(); ++i)
-        {
-            if (vy[i]<y1) y1 = vy[i];
-            else if (vy[i]>y2) y2 = vy[i];
-        }
-        return QRectF(0,y1,size()-1,y2-y1);
-    }
+    QVector<QRgb> colorMap_;
 };
 
 template<class VectorType>
-void QMatPlotWidget::plot(const VectorType& y, const QString &attr, const QColor& clr)
+inline void QMatPlotWidget::errorbar(const VectorType &x,
+                                     const VectorType &y,
+                                     const VectorType &dym,
+                                     const VectorType &dyp,
+                                     const QString &attr,
+                                     const QColor &clr)
 {
-    typedef SingleDataSeries_<VectorType> mydatat;
-    mydatat* data = new mydatat(y);
-    plotDataSeries(data,attr,clr);
+    __errorbar__(new ErrorBarSeries<VectorType>(x, y, dym, dyp), attr, clr);
 }
 
-
-template<class V_>
-class DataSeries_ : public QMatPlotWidget::AbstractDataSeries
+template<class VectorType>
+inline void QMatPlotWidget::errorbar(
+    const VectorType &x, const VectorType &y, double dy, const QString &attr, const QColor &clr)
 {
-    V_ vx;
-    V_ vy;
-public:
-    DataSeries_(const V_& x, const V_& y) : vx(x), vy(y)
-    {
-    }
-    DataSeries_(const DataSeries_& other) : vx(other.vx), vy(other.vy)
-    {
-    }
-    int size() const override { return qMin(vx.size(),vy.size()); }
-    QPointF sample( int i ) const override
-    {
-        return QPointF(vx[i],vy[i]);
-    }
-    QRectF boundingRect() const override
-    {
-        if (!size()) return QRectF();
-        qreal x1(vx[0]), x2(x1);
-        qreal y1(vy[0]), y2(y1);
-        for(int i=1; i<size(); ++i)
-        {
-            if (vx[i]<x1) x1 = vx[i];
-            else if (vx[i]>x2) x2 = vx[i];
-            if (vy[i]<y1) y1 = vy[i];
-            else if (vy[i]>y2) y2 = vy[i];
-        }
-        return QRectF(x1,y1,x2-x1,y2-y1);
-    }
-};
-
-
+    __errorbar__(new ErrorBarSeries<VectorType>(x, y, dy), attr, clr);
+}
 
 template<class VectorType>
-void QMatPlotWidget::plot(const VectorType& x, const VectorType& y, const QString &attr, const QColor& clr)
+inline void QMatPlotWidget::errorbar(const VectorType &y,
+                                     double dy,
+                                     const QString &attr,
+                                     const QColor &clr)
 {
-    DataSeries_<VectorType>* data = new DataSeries_<VectorType>(x,y);
-    plotDataSeries(data,attr,clr);
+    __errorbar__(new ErrorBarSeries<VectorType>(y, dy), attr, clr);
+}
+
+template<class VectorType>
+inline void QMatPlotWidget::errorbar(const VectorType &x,
+                                     const VectorType &y,
+                                     const VectorType &dy,
+                                     const QString &attr,
+                                     const QColor &clr)
+{
+    __errorbar__(new ErrorBarSeries<VectorType>(x, y, dy), attr, clr);
+}
+
+template<class VectorType>
+inline void QMatPlotWidget::errorbar(const VectorType &y,
+                                     const VectorType &dy,
+                                     const QString &attr,
+                                     const QColor &clr)
+{
+    __errorbar__(new ErrorBarSeries<VectorType>(y, dy), attr, clr);
+}
+
+struct QMatPlotWidget::Backend
+{
+    virtual bool exportToFile(const QString &fname, const QSize &sz) = 0;
+    virtual void clear() = 0;
+    virtual void replot() = 0;
+    virtual void plot(AbstractDataSeries *d, const QMatPlotWidget::LineSpec &l) = 0;
+    virtual void errorbar(AbstractErrorBarSeries *d, const QMatPlotWidget::LineSpec &l) = 0;
+    virtual void image(AbstractImageData *d, bool scale, const QVector<QRgb> &cmap) = 0;
+    virtual void setAxisScaling(int axisid, QMatPlotWidget::AxisScale sc) = 0;
+    virtual void setAxisScale(int axisid, double, double) = 0;
+    virtual QPointF xlim() const = 0;
+    virtual QPointF ylim() const = 0;
+    virtual QString title() const = 0;
+    virtual QString xlabel() const = 0;
+    virtual QString ylabel() const = 0;
+    virtual bool autoScaleX() const = 0;
+    virtual bool autoScaleY() const = 0;
+    //setters
+    virtual void setTitle(const QString &s) = 0;
+    virtual void setXlabel(const QString &s) = 0;
+    virtual void setYlabel(const QString &s) = 0;
+    virtual void setAutoScaleX(bool on) = 0;
+    virtual void setAutoScaleY(bool on) = 0;
+    virtual void setAxisScaleX(QMatPlotWidget::AxisScale sc) = 0;
+    virtual void setAxisScaleY(QMatPlotWidget::AxisScale sc) = 0;
+    virtual void setGrid(bool on) = 0;
+    virtual void setXlim(const QPointF &v) = 0;
+    virtual void setYlim(const QPointF &v) = 0;
+};
+
+template<class VectorType>
+inline void QMatPlotWidget::imagesc(const VectorType &z, int columns)
+{
+    backend_->image(new ImageData_<VectorType>(z, columns), true, colorMap_);
+}
+
+template<class VectorType>
+inline void QMatPlotWidget::imagesc(const VectorType &x,
+                                    const VectorType &y,
+                                    const VectorType &z,
+                                    int columns)
+{
+    backend_->image(new ImageData_<VectorType>(x, y, z, columns), true, colorMap_);
+}
+
+template<class VectorType>
+inline void QMatPlotWidget::image(const VectorType &z, int columns)
+{
+    backend_->image(new ImageData_<VectorType>(z, columns), false, colorMap_);
+}
+
+template<class VectorType>
+inline void QMatPlotWidget::image(const VectorType &x,
+                                  const VectorType &y,
+                                  const VectorType &z,
+                                  int columns)
+{
+    backend_->image(new ImageData_<VectorType>(x, y, z, columns), false, colorMap_);
+}
+
+template<class VectorType>
+inline void QMatPlotWidget::plot(const VectorType &y, const QString &attr, const QColor &clr)
+{
+    __plot__(new DataSeries_<VectorType>(y), attr, clr);
+}
+
+template<class VectorType>
+inline void QMatPlotWidget::plot(const VectorType &x,
+                                 const VectorType &y,
+                                 const QString &attr,
+                                 const QColor &clr)
+{
+    __plot__(new DataSeries_<VectorType>(x, y), attr, clr);
+}
+
+template<class VectorType>
+inline void QMatPlotWidget::stairs(const VectorType &y, const QString &attr, const QColor &clr)
+{
+    __plot__(new StairsDataSeries_<VectorType>(y), attr, clr);
+}
+
+template<class VectorType>
+inline void QMatPlotWidget::stairs(const VectorType &x,
+                                   const VectorType &y,
+                                   const QString &attr,
+                                   const QColor &clr)
+{
+    __plot__(new StairsDataSeries_<VectorType>(x, y), attr, clr);
 }
 
 class QLineEdit;

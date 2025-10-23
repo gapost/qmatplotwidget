@@ -1,6 +1,10 @@
 add_library(${PROJECT_NAME} STATIC
     QMatPlotWidget.cpp
     QMatPlotWidget.h
+    DataAdaptors.h
+    colormap.cpp
+    qwtbackend.h 
+    qwtbackend.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
