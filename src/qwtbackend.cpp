@@ -645,7 +645,17 @@ void QwtBackend::setAxisScaling(int axisid, QMatPlotWidget::AxisScale sc)
 
 void QwtBackend::clear()
 {
+    // Rtti_PlotItem = 0 , Rtti_PlotGrid , Rtti_PlotScale , Rtti_PlotLegend ,
+    //     Rtti_PlotMarker , Rtti_PlotCurve , Rtti_PlotSpectroCurve , Rtti_PlotIntervalCurve ,
+    //     Rtti_PlotHistogram , Rtti_PlotSpectrogram , Rtti_PlotGraphic , Rtti_PlotTradingCurve ,
+    //     Rtti_PlotBarChart , Rtti_PlotMultiBarChart , Rtti_PlotShape , Rtti_PlotTextLabel ,
+    //     Rtti_PlotZone , Rtti_PlotVectorField , Rtti_PlotUserItem = 1000
+
+    detachItems(QwtPlotItem::Rtti_PlotMarker, true);
+    detachItems(QwtPlotItem::Rtti_PlotIntervalCurve, true);
     detachItems(QwtPlotItem::Rtti_PlotCurve, true);
+    detachItems(QwtPlotItem::Rtti_PlotSpectrogram, true);
+
     replot();
 }
 

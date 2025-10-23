@@ -2,6 +2,8 @@
 #include <QGridLayout>
 #include "QMatPlotWidget.h"
 
+#include <QPushButton>
+
 #include <cmath>
 
 typedef QVector<qreal> Vector;
@@ -15,6 +17,7 @@ int main(int argc, char *argv[])
     QGridLayout *grid = new QGridLayout;
     w.setLayout(grid);
 
+    QMatPlotWidget *plot[2][2];
     {
         QMatPlotWidget *w = new QMatPlotWidget;
         //w->layout()->setMargin(20);
@@ -38,6 +41,7 @@ int main(int argc, char *argv[])
         w->setYlabel("y");
         w->setTitle("simple, y1(x)=x^2, y2(x)=x^3");
         grid->addWidget(w, 0, 0);
+        plot[0][0] = w;
     }
 
     {
@@ -59,9 +63,9 @@ int main(int argc, char *argv[])
         w->setTitle("stairs");
 
         grid->addWidget(w, 0, 1);
+        plot[0][1] = w;
     }
 
-    QVector<QRgb> test = QMatPlotWidget::colorMap(QMatPlotWidget::Jet, 8);
     {
         QMatPlotWidget *w = new QMatPlotWidget;
         w->setColorMap(QMatPlotWidget::Turbo);
@@ -91,6 +95,7 @@ int main(int argc, char *argv[])
         w->setTitle("image");
 
         grid->addWidget(w, 1, 0);
+        plot[1][0] = w;
     }
 
     {
@@ -116,8 +121,16 @@ int main(int argc, char *argv[])
         w->setXlabel("x");
         w->setYlabel("y");
         w->setTitle("errorbar");
+
         grid->addWidget(w, 1, 1);
+        plot[1][1] = w;
     }
+
+    // {
+    //     QPushButton *b = new QPushButton("Clear errorbar");
+    //     grid->addWidget(b, 2, 0);
+    //     QObject::connect(b, &QPushButton::pressed, plot[1][1], &QMatPlotWidget::clear);
+    // }
 
     w.resize(800, 600);
     w.show();
