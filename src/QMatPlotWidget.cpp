@@ -108,13 +108,13 @@ void QMatPlotWidget::setAutoScaleY(bool on)
 void QMatPlotWidget::setAxisScaleX(AxisScale sc)
 {
     if (sc==axisScaleX_) return;
-    backend_->setAxisScaling(QwtPlot::xBottom, sc);
+    backend_->setAxisScaleX(sc);
     axisScaleX_ = sc;
 }
 void QMatPlotWidget::setAxisScaleY(AxisScale sc)
 {
     if (sc==axisScaleY_) return;
-    backend_->setAxisScaling(QwtPlot::yLeft, sc);
+    backend_->setAxisScaleY(sc);
     axisScaleY_ = sc;
 }
 void QMatPlotWidget::setGrid(bool on)
@@ -131,11 +131,11 @@ void QMatPlotWidget::onAxisClicked(int axisid, const QPoint &pos)
 }
 void QMatPlotWidget::setXlim(const QPointF& v)
 {
-    backend_->setAxisScale(QwtPlot::xBottom, v.x(), v.y());
+    backend_->setXlim(v);
 }
 void QMatPlotWidget::setYlim(const QPointF &v)
 {
-    backend_->setAxisScale(QwtPlot::yLeft, v.x(), v.y());
+    backend_->setYlim(v);
 }
 void QMatPlotWidget::setColorOrder(const QVector<QRgb> &c)
 {
@@ -148,7 +148,9 @@ void QMatPlotWidget::setColorMap(const QVector<QRgb> &c)
     colorMap_ = c;
 }
 
-void QMatPlotWidget::__plot__(AbstractDataSeries *data, const QString &attr, const QColor &clr)
+void QMatPlotWidget::__plot__(AbstractDataSeriesAdaptor *data,
+                              const QString &attr,
+                              const QColor &clr)
 {
     LineSpec opt = LineSpec::fromMatlabLineSpec(attr);
 
@@ -165,7 +167,7 @@ void QMatPlotWidget::__plot__(AbstractDataSeries *data, const QString &attr, con
     backend_->plot(data, opt);
 }
 
-void QMatPlotWidget::__errorbar__(AbstractErrorBarSeries *d, const QString &attr, const QColor &clr)
+void QMatPlotWidget::__errorbar__(AbstractErrorBarAdaptor *d, const QString &attr, const QColor &clr)
 {
     LineSpec opt = LineSpec::fromMatlabLineSpec(attr);
 

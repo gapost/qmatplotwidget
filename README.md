@@ -5,7 +5,7 @@ A Qt plot widget with a MATLAB/OCTAVE-like interface.
 > part of **QDaq** (https://gitlab.com/qdaq/qdaq) - Qt-based Data Acquisition
 >
 
-![screenshot](./dist/Screenshot_20251023_143332.png)
+![screenshot](./dist/Screenshot_20251023.png)
 
 
 

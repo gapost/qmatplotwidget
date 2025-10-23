@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
         w->plot(Vector({-1, 1}), Vector({0, 0}), "k-");
         w->setXlabel("x");
         w->setYlabel("y");
-        w->setTitle("simple, y1(x)=x^2, y2(x)=x^3");
+        w->setTitle("plot");
         grid->addWidget(w, 0, 0);
         plot[0][0] = w;
     }
@@ -68,27 +68,31 @@ int main(int argc, char *argv[])
 
     {
         QMatPlotWidget *w = new QMatPlotWidget;
-        w->setColorMap(QMatPlotWidget::Turbo);
+        //w->setColorMap(QMatPlotWidget::Turbo);
         //w->layout()->setMargin(20);
 
-        //Vector matrix{1, 2, 4, 1, 6, 3, 5, 2, 4, 2, 1, 5, 5, 4, 2, 3};
-        const int N = 17;
-        const int O = 8;
         const int S = 6;
-        const int numRows = N;
-        const int numColumns = N;
-        Vector matrix(numRows * numColumns);
+        const int Nx = 21;
+        const int Ny = 17;
+        const int Ox = Nx / 2;
+        const int Oy = Ny / 2;
+        Vector matrix(Nx * Ny);
+        // fill the matrix as [Ny x Nx] in row-major (C-style) order
         int k = 0;
-        for (int i = 0; i < numRows; ++i)
-            for (int j = 0; j < numColumns; ++j) {
+        for (int i = 0; i < Ny; ++i)
+            for (int j = 0; j < Nx; ++j) {
                 //matrix[k++] = std::floor(1.0 * (i + numRows * j) / matrix.size() * 256);
-                double x = 1. * (i - O) / S;
-                double y = 1. * (j - O) / S;
-                matrix[k++] = exp(-(x * x + y * y));
+                double x = 1. * (j - Ox) / S;
+                double y = 1. * (i - Oy) / S;
+                matrix[k++] = exp(-(x * x + y * y)); // matrix element m(i,j)
             }
-        Vector x{-(N / 2), N / 2};
-        Vector y{-(N / 2), N / 2};
-        w->imagesc(x, y, matrix, numColumns);
+
+        int L = std::max(Nx, Ny) / 2;
+        Vector x{-1.0 * (Nx / 2), 1.0 * (Nx / 2)};
+        Vector y{-1.0 * (Ny / 2), 1.0 * (Ny / 2)};
+        w->imagesc(x, y, matrix, Nx);
+        w->setXlim({-1. * L, 1. * L});
+        w->setYlim({-1. * L, 1. * L});
 
         w->setXlabel("x");
         w->setYlabel("y");

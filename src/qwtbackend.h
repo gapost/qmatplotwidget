@@ -23,14 +23,10 @@ public:
     virtual bool exportToFile(const QString &fname, const QSize &sz) override;
     virtual void clear() override;
     virtual void replot() override { QwtPlot::replot(); }
-    virtual void plot(AbstractDataSeries *d, const QMatPlotWidget::LineSpec &l) override;
-    virtual void errorbar(AbstractErrorBarSeries *d, const QMatPlotWidget::LineSpec &opt) override;
-    virtual void image(AbstractImageData *d, bool scale, const QVector<QRgb> &cmap) override;
-    virtual void setAxisScaling(int axisid, QMatPlotWidget::AxisScale sc) override;
-    virtual void setAxisScale(int axisid, double x0, double x1) override
-    {
-        QwtPlot::setAxisScale(QwtPlot::xBottom, x0, x1);
-    }
+    virtual void plot(AbstractDataSeriesAdaptor *d, const QMatPlotWidget::LineSpec &l) override;
+    virtual void errorbar(AbstractErrorBarAdaptor *d, const QMatPlotWidget::LineSpec &opt) override;
+    virtual void image(AbstractImageAdaptor *d, bool scale, const QVector<QRgb> &cmap) override;
+    void setAxisScaling(int axisid, QMatPlotWidget::AxisScale sc);
     virtual QString title() const override { return QwtPlot::title().text(); }
     virtual QString xlabel() const override { return axisTitle(QwtPlot::xBottom).text(); }
     virtual QString ylabel() const override { return axisTitle(QwtPlot::yLeft).text(); }

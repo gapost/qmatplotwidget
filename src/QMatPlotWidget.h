@@ -174,8 +174,8 @@ protected:
     virtual QMenu* createAxisContextMenu(int axisid);
     virtual void axisPropertyDialog(int axisid);
 
-    void __plot__(AbstractDataSeries *d, const QString &attr, const QColor &clr);
-    void __errorbar__(AbstractErrorBarSeries *d, const QString &attr, const QColor &clr);
+    void __plot__(AbstractDataSeriesAdaptor *d, const QString &attr, const QColor &clr);
+    void __errorbar__(AbstractErrorBarAdaptor *d, const QString &attr, const QColor &clr);
     // void __image__(AbstractImageData *d, bool scale);
 
 protected slots:
@@ -205,14 +205,14 @@ inline void QMatPlotWidget::errorbar(const VectorType &x,
                                      const QString &attr,
                                      const QColor &clr)
 {
-    __errorbar__(new ErrorBarSeries<VectorType>(x, y, dym, dyp), attr, clr);
+    __errorbar__(new ErrorBarAdaptor<VectorType>(x, y, dym, dyp), attr, clr);
 }
 
 template<class VectorType>
 inline void QMatPlotWidget::errorbar(
     const VectorType &x, const VectorType &y, double dy, const QString &attr, const QColor &clr)
 {
-    __errorbar__(new ErrorBarSeries<VectorType>(x, y, dy), attr, clr);
+    __errorbar__(new ErrorBarAdaptor<VectorType>(x, y, dy), attr, clr);
 }
 
 template<class VectorType>
@@ -221,7 +221,7 @@ inline void QMatPlotWidget::errorbar(const VectorType &y,
                                      const QString &attr,
                                      const QColor &clr)
 {
-    __errorbar__(new ErrorBarSeries<VectorType>(y, dy), attr, clr);
+    __errorbar__(new ErrorBarAdaptor<VectorType>(y, dy), attr, clr);
 }
 
 template<class VectorType>
@@ -231,7 +231,7 @@ inline void QMatPlotWidget::errorbar(const VectorType &x,
                                      const QString &attr,
                                      const QColor &clr)
 {
-    __errorbar__(new ErrorBarSeries<VectorType>(x, y, dy), attr, clr);
+    __errorbar__(new ErrorBarAdaptor<VectorType>(x, y, dy), attr, clr);
 }
 
 template<class VectorType>
@@ -240,7 +240,7 @@ inline void QMatPlotWidget::errorbar(const VectorType &y,
                                      const QString &attr,
                                      const QColor &clr)
 {
-    __errorbar__(new ErrorBarSeries<VectorType>(y, dy), attr, clr);
+    __errorbar__(new ErrorBarAdaptor<VectorType>(y, dy), attr, clr);
 }
 
 struct QMatPlotWidget::Backend
@@ -248,11 +248,9 @@ struct QMatPlotWidget::Backend
     virtual bool exportToFile(const QString &fname, const QSize &sz) = 0;
     virtual void clear() = 0;
     virtual void replot() = 0;
-    virtual void plot(AbstractDataSeries *d, const QMatPlotWidget::LineSpec &l) = 0;
-    virtual void errorbar(AbstractErrorBarSeries *d, const QMatPlotWidget::LineSpec &l) = 0;
-    virtual void image(AbstractImageData *d, bool scale, const QVector<QRgb> &cmap) = 0;
-    virtual void setAxisScaling(int axisid, QMatPlotWidget::AxisScale sc) = 0;
-    virtual void setAxisScale(int axisid, double, double) = 0;
+    virtual void plot(AbstractDataSeriesAdaptor *d, const QMatPlotWidget::LineSpec &l) = 0;
+    virtual void errorbar(AbstractErrorBarAdaptor *d, const QMatPlotWidget::LineSpec &l) = 0;
+    virtual void image(AbstractImageAdaptor *d, bool scale, const QVector<QRgb> &cmap) = 0;
     virtual QPointF xlim() const = 0;
     virtual QPointF ylim() const = 0;
     virtual QString title() const = 0;
@@ -276,7 +274,7 @@ struct QMatPlotWidget::Backend
 template<class VectorType>
 inline void QMatPlotWidget::imagesc(const VectorType &z, int columns)
 {
-    backend_->image(new ImageData_<VectorType>(z, columns), true, colorMap_);
+    backend_->image(new ImageAdaptor<VectorType>(z, columns), true, colorMap_);
 }
 
 template<class VectorType>
@@ -285,13 +283,13 @@ inline void QMatPlotWidget::imagesc(const VectorType &x,
                                     const VectorType &z,
                                     int columns)
 {
-    backend_->image(new ImageData_<VectorType>(x, y, z, columns), true, colorMap_);
+    backend_->image(new ImageAdaptor<VectorType>(x, y, z, columns), true, colorMap_);
 }
 
 template<class VectorType>
 inline void QMatPlotWidget::image(const VectorType &z, int columns)
 {
-    backend_->image(new ImageData_<VectorType>(z, columns), false, colorMap_);
+    backend_->image(new ImageAdaptor<VectorType>(z, columns), false, colorMap_);
 }
 
 template<class VectorType>
@@ -300,13 +298,13 @@ inline void QMatPlotWidget::image(const VectorType &x,
                                   const VectorType &z,
                                   int columns)
 {
-    backend_->image(new ImageData_<VectorType>(x, y, z, columns), false, colorMap_);
+    backend_->image(new ImageAdaptor<VectorType>(x, y, z, columns), false, colorMap_);
 }
 
 template<class VectorType>
 inline void QMatPlotWidget::plot(const VectorType &y, const QString &attr, const QColor &clr)
 {
-    __plot__(new DataSeries_<VectorType>(y), attr, clr);
+    __plot__(new DataSeriesAdaptor<VectorType>(y), attr, clr);
 }
 
 template<class VectorType>
@@ -315,13 +313,13 @@ inline void QMatPlotWidget::plot(const VectorType &x,
                                  const QString &attr,
                                  const QColor &clr)
 {
-    __plot__(new DataSeries_<VectorType>(x, y), attr, clr);
+    __plot__(new DataSeriesAdaptor<VectorType>(x, y), attr, clr);
 }
 
 template<class VectorType>
 inline void QMatPlotWidget::stairs(const VectorType &y, const QString &attr, const QColor &clr)
 {
-    __plot__(new StairsDataSeries_<VectorType>(y), attr, clr);
+    __plot__(new StairsAdaptor<VectorType>(y), attr, clr);
 }
 
 template<class VectorType>
@@ -330,7 +328,7 @@ inline void QMatPlotWidget::stairs(const VectorType &x,
                                    const QString &attr,
                                    const QColor &clr)
 {
-    __plot__(new StairsDataSeries_<VectorType>(x, y), attr, clr);
+    __plot__(new StairsAdaptor<VectorType>(x, y), attr, clr);
 }
 
 class QLineEdit;

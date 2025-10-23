@@ -174,10 +174,6 @@ public:
                 axis = QwtPlot::yLeft;
                 break;
             }
-            //qDebug() << "Mouse " << event->type() << " on axis " << axis << ", v=" << value;
-            //QMenu *menu = mPlot_->mMatPlot_->createAxisContextMenu(axis);
-            //menu->exec(scale->mapToGlobal(pos));
-
             mPlot_->doAxisClicked(axis, scale->mapToGlobal(pos));
         }
     }
@@ -260,9 +256,9 @@ public:
 class DataHelper : public QwtSeriesData<QPointF>
 {
 public:
-    AbstractDataSeries *d;
+    AbstractDataSeriesAdaptor *d;
 
-    DataHelper(AbstractDataSeries *a)
+    DataHelper(AbstractDataSeriesAdaptor *a)
         : d(a)
     {}
     DataHelper(const DataHelper &other)
@@ -278,9 +274,9 @@ public:
 class ErrorBarSampleHelper : public QwtSeriesData<QPointF>
 {
 public:
-    AbstractErrorBarSeries *d;
+    AbstractErrorBarAdaptor *d;
 
-    ErrorBarSampleHelper(AbstractErrorBarSeries *a)
+    ErrorBarSampleHelper(AbstractErrorBarAdaptor *a)
         : d(a)
     {}
     ErrorBarSampleHelper(const ErrorBarSampleHelper &other)
@@ -296,9 +292,9 @@ public:
 class ErrorBarIntervalHelper : public QwtSeriesData<QwtIntervalSample>
 {
 public:
-    AbstractErrorBarSeries *d;
+    AbstractErrorBarAdaptor *d;
 
-    ErrorBarIntervalHelper(AbstractErrorBarSeries *a)
+    ErrorBarIntervalHelper(AbstractErrorBarAdaptor *a)
         : d(a)
     {}
     ErrorBarIntervalHelper(const ErrorBarIntervalHelper &other)
@@ -319,9 +315,9 @@ public:
 class StairsDataHelper : public QwtSeriesData<QPointF>
 {
 public:
-    AbstractDataSeries *d;
+    AbstractDataSeriesAdaptor *d;
 
-    StairsDataHelper(AbstractDataSeries *a)
+    StairsDataHelper(AbstractDataSeriesAdaptor *a)
         : d(a)
     {}
     StairsDataHelper(const StairsDataHelper &other)
@@ -336,10 +332,10 @@ public:
 
 struct ImageHelper : public QwtMatrixRasterData
 {
-    AbstractImageData *d;
+    AbstractImageAdaptor *d;
     bool scale;
 
-    ImageHelper(AbstractImageData *a, bool scale)
+    ImageHelper(AbstractImageAdaptor *a, bool scale)
         : d(a)
     {
         init();
@@ -364,10 +360,8 @@ struct ImageHelper : public QwtMatrixRasterData
         int nrows = d->rows();
         QVector<double> m(ncols * nrows);
 
-        int k = 0;
-        for (int i = 0; i < nrows; i++)
-            for (int j = 0; j < ncols; j++)
-                m[k++] = d->value(i, j);
+        for (int k = 0; k < m.size(); ++k)
+            m[k] = d->value(k);
 
         setValueMatrix(m, ncols);
     }
@@ -536,7 +530,7 @@ static const QwtSymbol::Style qwt_dotstyles[] = {QwtSymbol::Cross,
                                                  QwtSymbol::Hexagon,
                                                  QwtSymbol::NoSymbol};
 
-void QwtBackend::plot(AbstractDataSeries *d, const QMatPlotWidget::LineSpec &opt)
+void QwtBackend::plot(AbstractDataSeriesAdaptor *d, const QMatPlotWidget::LineSpec &opt)
 {
     QwtPlotCurve *curve = new QwtPlotCurve;
 
@@ -573,7 +567,7 @@ public:
     }
 };
 
-void QwtBackend::errorbar(AbstractErrorBarSeries *d, const QMatPlotWidget::LineSpec &opt)
+void QwtBackend::errorbar(AbstractErrorBarAdaptor *d, const QMatPlotWidget::LineSpec &opt)
 {
     QwtPlotCurve *curve = new QwtPlotCurve;
 
@@ -613,7 +607,7 @@ void QwtBackend::errorbar(AbstractErrorBarSeries *d, const QMatPlotWidget::LineS
     replot();
 }
 
-void QwtBackend::image(AbstractImageData *d, bool scale, const QVector<QRgb> &cmap)
+void QwtBackend::image(AbstractImageAdaptor *d, bool scale, const QVector<QRgb> &cmap)
 {
     QwtPlotSpectrogram *d_spectrogram = new QwtPlotSpectrogram();
     d_spectrogram->setRenderThreadCount(0); // use system specific thread count

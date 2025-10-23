@@ -4,17 +4,17 @@
 #include <QPointF>
 #include <QRectF>
 
-struct AbstractDataSeries
+struct AbstractDataSeriesAdaptor
 {
-    virtual ~AbstractDataSeries() {}
+    virtual ~AbstractDataSeriesAdaptor() {}
     virtual int size() const = 0;
     virtual QPointF sample(int i) const = 0;
     virtual QRectF boundingRect() const = 0;
 };
 
-struct AbstractErrorBarSeries
+struct AbstractErrorBarAdaptor
 {
-    virtual ~AbstractErrorBarSeries() {}
+    virtual ~AbstractErrorBarAdaptor() {}
     virtual int size() const = 0;
     virtual QPointF sample(int i) const = 0;
     virtual QPointF interval(int i) const = 0;
@@ -22,45 +22,45 @@ struct AbstractErrorBarSeries
     virtual QRectF errorBoundingRect() const = 0;
 };
 
-struct AbstractImageData
+struct AbstractImageAdaptor
 {
-    virtual ~AbstractImageData() {}
+    virtual ~AbstractImageAdaptor() {}
     virtual int rows() const = 0;
     virtual int columns() const = 0;
-    virtual double value(int r, int c) const = 0;
+    virtual double value(int k) const = 0;
     virtual QPointF xlim() const = 0;
     virtual QPointF ylim() const = 0;
     virtual QPointF zlim() const = 0;
 };
 
 template<class VectorType>
-class ImageData_ : public AbstractImageData
+class ImageAdaptor : public AbstractImageAdaptor
 {
     VectorType x_, y_, z_;
     int cols_;
     bool zonly_;
 
 public:
-    explicit ImageData_(const VectorType &z, int columns)
+    explicit ImageAdaptor(const VectorType &z, int columns)
         : z_(z)
         , cols_(columns)
         , zonly_(true)
     {}
-    ImageData_(const VectorType &x, const VectorType &y, const VectorType &z, int columns)
+    ImageAdaptor(const VectorType &x, const VectorType &y, const VectorType &z, int columns)
         : x_(x)
         , y_(y)
         , z_(z)
         , cols_(columns)
         , zonly_(false)
     {}
-    ImageData_(const ImageData_ &other) = default;
+    ImageAdaptor(const ImageAdaptor &other) = default;
     int rows() const override { return z_.size() / cols_; }
     int columns() const override { return cols_; }
-    double value(int r, int c) const override { return z_[r + rows() * c]; }
+    double value(int k) const override { return z_[k]; }
     QPointF xlim() const override
     {
         if (zonly_) {
-            return QPointF(0, rows());
+            return QPointF(0, cols_);
         } else {
             return QPointF(x_[0], x_[x_.size() - 1]);
         }
@@ -68,7 +68,7 @@ public:
     QPointF ylim() const override
     {
         if (zonly_) {
-            return QPointF(0, cols_);
+            return QPointF(0, rows());
         } else {
             return QPointF(y_[0], y_[y_.size() - 1]);
         }
@@ -87,23 +87,23 @@ public:
 };
 
 template<class V_>
-class DataSeries_ : public AbstractDataSeries
+class DataSeriesAdaptor : public AbstractDataSeriesAdaptor
 {
     V_ vx;
     V_ vy;
     bool yonly_;
 
 public:
-    DataSeries_(const V_ &y)
+    DataSeriesAdaptor(const V_ &y)
         : vy(y)
         , yonly_(true)
     {}
-    DataSeries_(const V_ &x, const V_ &y)
+    DataSeriesAdaptor(const V_ &x, const V_ &y)
         : vx(x)
         , vy(y)
         , yonly_(false)
     {}
-    DataSeries_(const DataSeries_ &other) = default;
+    DataSeriesAdaptor(const DataSeriesAdaptor &other) = default;
     int size() const override { return yonly_ ? vy.size() : qMin(vx.size(), vy.size()); }
     QPointF sample(int i) const override
     {
@@ -142,22 +142,22 @@ public:
 };
 
 template<class VectorType>
-class StairsDataSeries_ : public AbstractDataSeries
+class StairsAdaptor : public AbstractDataSeriesAdaptor
 {
     VectorType x_, y_;
     bool yonly_;
 
 public:
-    explicit StairsDataSeries_(const VectorType &y)
+    explicit StairsAdaptor(const VectorType &y)
         : y_(y)
         , yonly_(true)
     {}
-    StairsDataSeries_(const VectorType &x, const VectorType &y)
+    StairsAdaptor(const VectorType &x, const VectorType &y)
         : x_(x)
         , y_(y)
         , yonly_(false)
     {}
-    StairsDataSeries_(const StairsDataSeries_ &other) = default;
+    StairsAdaptor(const StairsAdaptor &other) = default;
     int size() const override
     {
         return yonly_ ? 2 * y_.size() - 1 : 2 * std::min(x_.size(), y_.size()) - 1;
@@ -203,13 +203,13 @@ public:
 };
 
 template<class VectorType>
-class ErrorBarSeries : public AbstractErrorBarSeries
+class ErrorBarAdaptor : public AbstractErrorBarAdaptor
 {
     VectorType x_, y_, ym_, yp_;
     bool yonly_;
 
 public:
-    ErrorBarSeries(const VectorType &y, double err)
+    ErrorBarAdaptor(const VectorType &y, double err)
         : y_(y)
         , ym_(y.size())
         , yp_(y.size())
@@ -220,7 +220,7 @@ public:
             yp_[i] = y[i] + err;
         }
     }
-    ErrorBarSeries(const VectorType &x, const VectorType &y, double err)
+    ErrorBarAdaptor(const VectorType &x, const VectorType &y, double err)
         : x_(x)
         , y_(y)
         , ym_(y.size())
@@ -232,7 +232,7 @@ public:
             yp_[i] = y[i] + err;
         }
     }
-    ErrorBarSeries(const VectorType &y, const VectorType &err)
+    ErrorBarAdaptor(const VectorType &y, const VectorType &err)
         : y_(y)
         , ym_(y.size())
         , yp_(y.size())
@@ -243,7 +243,7 @@ public:
             yp_[i] = y[i] + err[i];
         }
     }
-    ErrorBarSeries(const VectorType &x, const VectorType &y, const VectorType &err)
+    ErrorBarAdaptor(const VectorType &x, const VectorType &y, const VectorType &err)
         : x_(x)
         , y_(y)
         , ym_(y.size())
@@ -255,10 +255,10 @@ public:
             yp_[i] = y[i] + err[i];
         }
     }
-    ErrorBarSeries(const VectorType &x,
-                   const VectorType &y,
-                   const VectorType &errm,
-                   const VectorType &errp)
+    ErrorBarAdaptor(const VectorType &x,
+                    const VectorType &y,
+                    const VectorType &errm,
+                    const VectorType &errp)
         : x_(x)
         , y_(y)
         , ym_(y.size())
@@ -270,7 +270,7 @@ public:
             yp_[i] = y[i] + errp[i];
         }
     }
-    ErrorBarSeries(const ErrorBarSeries &other) = default;
+    ErrorBarAdaptor(const ErrorBarAdaptor &other) = default;
     int size() const override { return yonly_ ? y_.size() : std::min(x_.size(), y_.size()); }
     QPointF sample(int i) const override
     {
