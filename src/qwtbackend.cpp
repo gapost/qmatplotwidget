@@ -399,7 +399,11 @@ public:
         return map[i];
     }
 
+#if  QWT_VERSION >= 0x060300
+	uint colorIndex( int numColors, const QwtInterval& interval, double value ) const override
+#else
     unsigned char colorIndex(const QwtInterval &interval, double value) const override
+#endif
     {
         if (qIsNaN(value))
             return 0u;

@@ -5,6 +5,7 @@
 #include <qwt_plot.h>
 #include <qwt_plot_grid.h>
 #include <qwt_scale_draw.h>
+#include <qwt_text.h>
 
 class QwtPlotGrid;
 class QwtPlotGrid;
