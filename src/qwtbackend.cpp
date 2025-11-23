@@ -641,6 +641,26 @@ void QwtBackend::setAxisScaling(int axisid, QMatPlotWidget::AxisScale sc)
     }
 }
 
+void QwtBackend::setAxisEqual()
+{
+    QSize sz = canvas()->size();
+    double x0 = axisScaleDiv(QwtPlot::xBottom).lowerBound();
+    double x1 = axisScaleDiv(QwtPlot::xBottom).upperBound();
+    double y0 = axisScaleDiv(QwtPlot::yLeft).lowerBound();
+    double y1 = axisScaleDiv(QwtPlot::yLeft).upperBound();
+    double ax = (x1 - x0) / sz.width();
+    double ay = (y1 - y0) / sz.height();
+    if (ay < ax) {
+        double ym = 0.5 * (y0 + y1);
+        double dy = ax * sz.height();
+        setAxisScale(QwtPlot::yLeft, ym - 0.5 * dy, ym + 0.5 * dy);
+    } else if (ax < ay) {
+        double xm = 0.5 * (x0 + x1);
+        double dx = ay * sz.width();
+        setAxisScale(QwtPlot::xBottom, xm - 0.5 * dx, xm + 0.5 * dx);
+    }
+}
+
 void QwtBackend::clear()
 {
     // Rtti_PlotItem = 0 , Rtti_PlotGrid , Rtti_PlotScale , Rtti_PlotLegend ,

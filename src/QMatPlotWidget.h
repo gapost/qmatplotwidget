@@ -110,6 +110,7 @@ public slots:
     void setLogScaleY()    { setAxisScaleY(Log); }
     void setLinearScaleX() { setAxisScaleX(Linear); }
     void setLinearScaleY() { setAxisScaleY(Linear); }
+    void setAxisEqual();
 
     void onAxisClicked(int axisid, const QPoint &pos);
 
@@ -269,6 +270,7 @@ struct QMatPlotWidget::Backend
     virtual void setGrid(bool on) = 0;
     virtual void setXlim(const QPointF &v) = 0;
     virtual void setYlim(const QPointF &v) = 0;
+    virtual void setAxisEqual() = 0;
 };
 
 template<class VectorType>

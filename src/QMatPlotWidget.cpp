@@ -124,6 +124,11 @@ void QMatPlotWidget::setGrid(bool on)
     grid_on_ = on;
 }
 
+void QMatPlotWidget::setAxisEqual()
+{
+    backend_->setAxisEqual();
+}
+
 void QMatPlotWidget::onAxisClicked(int axisid, const QPoint &pos)
 {
     QMenu *menu = createAxisContextMenu(axisid);

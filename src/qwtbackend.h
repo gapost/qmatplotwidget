@@ -70,6 +70,7 @@ public:
         setAxisScale(QwtPlot::xBottom, v.x(), v.y());
     }
     virtual void setYlim(const QPointF &v) override { setAxisScale(QwtPlot::yLeft, v.x(), v.y()); }
+    void setAxisEqual() override;
 
     QMatPlotWidget *mMatPlot_;
     QwtPlotGrid *grid_;
