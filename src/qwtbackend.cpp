@@ -48,13 +48,14 @@ class FormattedPicker : public QwtPlotPicker
 public:
     FormattedPicker(int xAxis, int yAxis, RubberBand rubberBand, DisplayMode trackerMode, QWidget *pc)
         : QwtPlotPicker(xAxis, yAxis, rubberBand, trackerMode, pc)
-    {}
+    {
+    }
 
 protected:
     QwtText trackerTextF(const QPointF &pos) const override
     {
-        //Since the "paintAttributes", [text+background colour] act on QwtTexts
-        //break up the creation of trackerTextF: one function to create the text
+        // Since the "paintAttributes", [text+background colour] act on QwtTexts
+        // break up the creation of trackerTextF: one function to create the text
         //(as a QString), and another to set attributes and return the object.
         QString S = createLabelText(pos);
         QwtText trackerText;
@@ -79,20 +80,24 @@ class Zoomer : public QwtPlotZoomer
 public:
     Zoomer(int xAxis, int yAxis, QWidget *canvas)
         : QwtPlotZoomer(xAxis, yAxis, canvas)
-    {}
+    {
+    }
 
 protected:
     void begin() override
     {
-        if (zoomRectIndex() == 0) {
+        if (zoomRectIndex() == 0)
+        {
             setZoomBase(false);
 
             const QRectF &rect = this->scaleRect();
             QwtPlot *plt = plot();
-            if (plt->axisAutoScale(QwtPlot::xBottom)) {
+            if (plt->axisAutoScale(QwtPlot::xBottom))
+            {
                 plt->setAxisScale(QwtPlot::xBottom, rect.left(), rect.right());
             }
-            if (plt->axisAutoScale(QwtPlot::yLeft)) {
+            if (plt->axisAutoScale(QwtPlot::yLeft))
+            {
                 plt->setAxisScale(QwtPlot::yLeft, rect.top(), rect.bottom());
             }
         }
@@ -108,7 +113,7 @@ protected:
         plt->setAxisAutoScale(QwtPlot::xBottom);
         plt->setAxisAutoScale(QwtPlot::yLeft);
 
-        setZoomStack(zoomStack(), 0); //QStack<QwtDoubleRect>());
+        setZoomStack(zoomStack(), 0); // QStack<QwtDoubleRect>());
     }
 };
 
@@ -118,10 +123,10 @@ class ScalePicker : public QObject
 
 public:
     explicit ScalePicker(QwtBackend *plot)
-        : QObject(plot)
-        , mPlot_(plot)
+        : QObject(plot), mPlot_(plot)
     {
-        for (uint i = 0; i < QwtPlot::axisCnt; i++) {
+        for (uint i = 0; i < QwtPlot::axisCnt; i++)
+        {
             QwtScaleWidget *scaleWidget = plot->axisWidget(i);
             if (scaleWidget)
                 scaleWidget->installEventFilter(this);
@@ -130,11 +135,14 @@ public:
 
     bool eventFilter(QObject *object, QEvent *event) override
     {
-        if (event->type() == QEvent::MouseButtonPress) {
+        if (event->type() == QEvent::MouseButtonPress)
+        {
             QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
-            if (mouseEvent->button() == Qt::RightButton) {
+            if (mouseEvent->button() == Qt::RightButton)
+            {
                 QwtScaleWidget *scaleWidget = qobject_cast<QwtScaleWidget *>(object);
-                if (scaleWidget) {
+                if (scaleWidget)
+                {
                     mouseClicked(scaleWidget, mouseEvent);
                     return true;
                 }
@@ -157,7 +165,8 @@ public:
         if (rect.contains(pos)) // No click on the title
         {
             int axis;
-            switch (scale->alignment()) {
+            switch (scale->alignment())
+            {
             case QwtScaleDraw::LeftScale:
                 axis = QwtPlot::yLeft;
                 break;
@@ -185,20 +194,25 @@ public:
         const int ebd = scale->endBorderDist();
 
         QRect rect;
-        switch (scale->alignment()) {
-        case QwtScaleDraw::LeftScale: {
+        switch (scale->alignment())
+        {
+        case QwtScaleDraw::LeftScale:
+        {
             rect.setRect(scale->width() - bld - mjt, sbd, mjt, scale->height() - sbd - ebd);
             break;
         }
-        case QwtScaleDraw::RightScale: {
+        case QwtScaleDraw::RightScale:
+        {
             rect.setRect(bld, sbd, mjt, scale->height() - sbd - ebd);
             break;
         }
-        case QwtScaleDraw::BottomScale: {
+        case QwtScaleDraw::BottomScale:
+        {
             rect.setRect(sbd, bld, scale->width() - sbd - ebd, mjt);
             break;
         }
-        case QwtScaleDraw::TopScale: {
+        case QwtScaleDraw::TopScale:
+        {
             rect.setRect(sbd, scale->height() - bld - mjt, scale->width() - sbd - ebd, mjt);
             break;
         }
@@ -260,10 +274,12 @@ public:
 
     DataHelper(AbstractDataSeriesAdaptor *a)
         : d(a)
-    {}
+    {
+    }
     DataHelper(const DataHelper &other)
         : d(other.d)
-    {}
+    {
+    }
     virtual ~DataHelper() { delete d; }
 
     size_t size() const override { return d->size(); }
@@ -278,10 +294,12 @@ public:
 
     ErrorBarSampleHelper(AbstractErrorBarAdaptor *a)
         : d(a)
-    {}
+    {
+    }
     ErrorBarSampleHelper(const ErrorBarSampleHelper &other)
         : d(other.d)
-    {}
+    {
+    }
     virtual ~ErrorBarSampleHelper() { delete d; }
 
     size_t size() const override { return d->size(); }
@@ -296,10 +314,12 @@ public:
 
     ErrorBarIntervalHelper(AbstractErrorBarAdaptor *a)
         : d(a)
-    {}
+    {
+    }
     ErrorBarIntervalHelper(const ErrorBarIntervalHelper &other)
         : d(other.d)
-    {}
+    {
+    }
     virtual ~ErrorBarIntervalHelper() {}
 
     size_t size() const override { return d->size(); }
@@ -319,10 +339,12 @@ public:
 
     StairsDataHelper(AbstractDataSeriesAdaptor *a)
         : d(a)
-    {}
+    {
+    }
     StairsDataHelper(const StairsDataHelper &other)
         : d(other.d)
-    {}
+    {
+    }
     virtual ~StairsDataHelper() { delete d; }
 
     size_t size() const override { return d->size(); }
@@ -341,8 +363,7 @@ struct ImageHelper : public QwtMatrixRasterData
         init();
     }
     ImageHelper(const ImageHelper &other)
-        : d(other.d)
-        , scale(other.scale)
+        : d(other.d), scale(other.scale)
     {
         init();
     }
@@ -374,10 +395,9 @@ class ColorMapHelper : public QwtColorMap
 
 public:
     explicit ColorMapHelper(const QVector<QRgb> &m, bool scale = true)
-        : QwtColorMap(QwtColorMap::RGB)
-        , map(m)
-        , scale_(scale)
-    {}
+        : QwtColorMap(QwtColorMap::RGB), map(m), scale_(scale)
+    {
+    }
 
     QRgb rgb(const QwtInterval &interval, double value) const override
     {
@@ -385,7 +405,8 @@ public:
             return 0u;
 
         double v = value;
-        if (scale_) {
+        if (scale_)
+        {
             const double width = interval.width();
             if (width <= 0.0)
                 return 0u;
@@ -399,8 +420,8 @@ public:
         return map[i];
     }
 
-#if  QWT_VERSION >= 0x060300
-	uint colorIndex( int numColors, const QwtInterval& interval, double value ) const override
+#if QWT_VERSION >= 0x060200
+    uint colorIndex(int numColors, const QwtInterval &interval, double value) const override
 #else
     unsigned char colorIndex(const QwtInterval &interval, double value) const override
 #endif
@@ -420,21 +441,20 @@ public:
 };
 
 QwtBackend::QwtBackend(QMatPlotWidget *parent)
-    : QwtPlot(parent)
-    , mMatPlot_(parent)
+    : QwtPlot(parent), mMatPlot_(parent)
 {
     QwtPlotCanvas *cnv = new QwtPlotCanvas();
 
     alignScales();
 
-    //cnv->setFrameStyle( QFrame::Box | QFrame::Plain );
-    //cnv->setLineWidth( 1 );
+    // cnv->setFrameStyle( QFrame::Box | QFrame::Plain );
+    // cnv->setLineWidth( 1 );
 
     cnv->setStyleSheet("border: 1px solid black; background: white");
 
     setCanvas(cnv);
 
-    //setCanvasBackground(QColor(Qt::white));
+    // setCanvasBackground(QColor(Qt::white));
 
     QFont font;
     font = axisFont(QwtPlot::xBottom);
@@ -457,7 +477,7 @@ QwtBackend::QwtBackend(QMatPlotWidget *parent)
 
     grid_ = new QwtPlotGrid;
     grid_->setMajorPen(QPen(Qt::gray, 0, Qt::DotLine));
-    //grid->setMinPen(QPen(Qt::gray, 0 , Qt::DotLine));
+    // grid->setMinPen(QPen(Qt::gray, 0 , Qt::DotLine));
     grid_->attach(this);
 
     setAxisScaleDraw(QwtPlot::xBottom, new SciScaleDraw());
@@ -467,7 +487,7 @@ QwtBackend::QwtBackend(QMatPlotWidget *parent)
     zoomer->setRubberBand(QwtPicker::RectRubberBand);
     zoomer->setRubberBandPen(QPen(Qt::darkGray, 0, Qt::DashLine));
 
-    //zoomer->setSelectionFlags(QwtPicker::DragSelection | QwtPicker::CornerToCorner);
+    // zoomer->setSelectionFlags(QwtPicker::DragSelection | QwtPicker::CornerToCorner);
     zoomer->setTrackerMode(QwtPicker::AlwaysOff);
 
     // RightButton: zoom out by 1
@@ -506,7 +526,8 @@ void QwtBackend::alignScales()
     // the canvas frame, but is also a good example demonstrating
     // why the spreaded API needs polishing.
 
-    for (int i = 0; i < QwtPlot::axisCnt; i++) {
+    for (int i = 0; i < QwtPlot::axisCnt; i++)
+    {
         QwtScaleWidget *scaleWidget = axisWidget(i);
         if (scaleWidget)
             scaleWidget->setMargin(0);
@@ -519,7 +540,7 @@ void QwtBackend::alignScales()
     plotLayout()->setAlignCanvasToScales(true);
 }
 
-//Respective Qwt names for QwtSymbol::Style
+// Respective Qwt names for QwtSymbol::Style
 static const QwtSymbol::Style qwt_dotstyles[] = {QwtSymbol::Cross,
                                                  QwtSymbol::Ellipse,
                                                  QwtSymbol::Star1,
@@ -541,9 +562,10 @@ void QwtBackend::plot(AbstractDataSeriesAdaptor *d, const QMatPlotWidget::LineSp
     curve->setRenderHint(QwtPlotItem::RenderAntialiased);
     curve->setStyle(QwtPlotCurve::Lines);
     curve->setPen(opt.clr, 0.0, opt.penStyle);
-    if (opt.markerStyle < QMatPlotWidget::LineSpec::nMarkers) {
-        //set a discernible but not very intrusive size for markers
-        //make the marker same color as plot
+    if (opt.markerStyle < QMatPlotWidget::LineSpec::nMarkers)
+    {
+        // set a discernible but not very intrusive size for markers
+        // make the marker same color as plot
         QwtSymbol *symbol = new QwtSymbol(qwt_dotstyles[opt.markerStyle],
                                           QBrush(Qt::white),
                                           QPen(opt.clr),
@@ -564,8 +586,8 @@ public:
     QRectF boundingRect() const override
     {
         QRectF rect = QwtPlotSeriesItem::boundingRect();
-        //if (orientation() == Qt::Vertical)
-        //    rect.setRect(rect.y(), rect.x(), rect.height(), rect.width());
+        // if (orientation() == Qt::Vertical)
+        //     rect.setRect(rect.y(), rect.x(), rect.height(), rect.width());
 
         return rect;
     }
@@ -578,9 +600,10 @@ void QwtBackend::errorbar(AbstractErrorBarAdaptor *d, const QMatPlotWidget::Line
     curve->setRenderHint(QwtPlotItem::RenderAntialiased);
     curve->setStyle(QwtPlotCurve::Lines);
     curve->setPen(opt.clr, 0.0, opt.penStyle);
-    if (opt.markerStyle < QMatPlotWidget::LineSpec::nMarkers) {
-        //set a discernible but not very intrusive size for markers
-        //make the marker same color as plot
+    if (opt.markerStyle < QMatPlotWidget::LineSpec::nMarkers)
+    {
+        // set a discernible but not very intrusive size for markers
+        // make the marker same color as plot
         QwtSymbol *symbol = new QwtSymbol(qwt_dotstyles[opt.markerStyle],
                                           QBrush(Qt::white),
                                           QPen(opt.clr),
@@ -626,7 +649,8 @@ void QwtBackend::image(AbstractImageAdaptor *d, bool scale, const QVector<QRgb> 
 
 void QwtBackend::setAxisScaling(int axisid, QMatPlotWidget::AxisScale sc)
 {
-    switch (sc) {
+    switch (sc)
+    {
     case QMatPlotWidget::Linear:
         setAxisScaleEngine(axisid, new QwtLinearScaleEngine());
         setAxisScaleDraw(axisid, new SciScaleDraw());
@@ -650,11 +674,14 @@ void QwtBackend::setAxisEqual()
     double y1 = axisScaleDiv(QwtPlot::yLeft).upperBound();
     double ax = (x1 - x0) / sz.width();
     double ay = (y1 - y0) / sz.height();
-    if (ay < ax) {
+    if (ay < ax)
+    {
         double ym = 0.5 * (y0 + y1);
         double dy = ax * sz.height();
         setAxisScale(QwtPlot::yLeft, ym - 0.5 * dy, ym + 0.5 * dy);
-    } else if (ax < ay) {
+    }
+    else if (ax < ay)
+    {
         double xm = 0.5 * (x0 + x1);
         double dx = ay * sz.width();
         setAxisScale(QwtPlot::xBottom, xm - 0.5 * dx, xm + 0.5 * dx);
@@ -681,7 +708,8 @@ bool QwtBackend::exportToFile(const QString &fname, const QSize &sz)
 {
     QwtPlotRenderer plotRenderer;
     QSize szmm(sz);
-    if (szmm.isEmpty()) { // convert actual widget size to mm
+    if (szmm.isEmpty())
+    { // convert actual widget size to mm
         QScreen *myScreen = screen();
         szmm = size();
         szmm.rwidth() = int(szmm.width() / myScreen->logicalDotsPerInchX() * 25.4);
