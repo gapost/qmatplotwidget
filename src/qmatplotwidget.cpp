@@ -1,9 +1,8 @@
-#include "QMatPlotWidget.h"
-
+#include "qmatplotwidget.h"
+#include "qmatplotwidget_p.h"
 #include "qwtbackend.h"
 
 #include <QDebug>
-
 #include <QCloseEvent>
 #include <QCoreApplication>
 #include <QSet>
@@ -187,6 +186,11 @@ void QMatPlotWidget::__errorbar__(AbstractErrorBarAdaptor *d, const QString &att
     opt.clr = plotClr;
 
     backend_->errorbar(d, opt);
+}
+
+void QMatPlotWidget::__image__(AbstractImageAdaptor *d, bool scale)
+{
+    backend_->image(d, scale, colorMap_);
 }
 
 void QMatPlotWidget::clear()

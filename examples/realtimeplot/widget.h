@@ -6,7 +6,7 @@
 #include <QElapsedTimer>
 #include <QRandomGenerator>
 
-#include "QMatPlotWidget.h"
+#include <QMatPlotWidget>
 
 // explicitly shared vector class with "offset indexing"
 class SharedVector

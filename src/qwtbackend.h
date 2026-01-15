@@ -1,7 +1,8 @@
 #ifndef QWTBACKEND_H
 #define QWTBACKEND_H
 
-#include "QMatPlotWidget.h"
+#include "qmatplotwidget.h"
+#include "qmatplotwidget_p.h"
 #include <qwt_plot.h>
 #include <qwt_plot_grid.h>
 #include <qwt_scale_draw.h>

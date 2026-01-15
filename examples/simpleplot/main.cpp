@@ -1,8 +1,8 @@
 #include <QApplication>
 #include <QGridLayout>
-#include "QMatPlotWidget.h"
-
 #include <QPushButton>
+
+#include <QMatPlotWidget>
 
 #include <cmath>
 

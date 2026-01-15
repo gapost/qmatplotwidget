@@ -1,4 +1,4 @@
-#include "QMatPlotWidget.h"
+#include "qmatplotwidget.h"
 
 #include <cmath>
 
