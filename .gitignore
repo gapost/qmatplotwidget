@@ -1,4 +1,12 @@
 *.pro.user*
 .build
 
+# QtCreator
+*.autosave
 
+# QtCreator CMake
+CMakeLists.txt.user*
+
+
+# QtCreator local machine specific files for imported projects
+*creator.user*
