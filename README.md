@@ -7,13 +7,12 @@ A Qt plot widget with a MATLAB/OCTAVE-like interface.
 
 ![screenshot](./dist/Screenshot_20251023.png)
 
-
-
 ```c++
-    #include "QMatPlotWidget.h"
+    #include <QMatPlotWidget>
+    #include <vector>
 
     const int N = 40;
-    QVector<double> x(N+1), y(N+1);
+    std::vector<double> x(N+1), y(N+1);
     for(int i=0; i<=N; ++i)
     {
         x[i] = -1. + 2.*i/N;
@@ -28,9 +27,9 @@ A Qt plot widget with a MATLAB/OCTAVE-like interface.
     w.show();
 ```
 
-The QMatPlotWidget class provides only the interface. 
+QMatPlotWidget provides only the MATLAB-compatible interface and does not do the actual plotting. This is implemented by a "backend".
 
-The actual plotting is done with `Qwt` (https://qwt.sourceforge.io/) as a backend.
+Currently, the backend is `Qwt` (https://qwt.sourceforge.io/).
 
 
 
