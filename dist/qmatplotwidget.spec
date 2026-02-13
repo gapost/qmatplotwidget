@@ -7,12 +7,9 @@ Summary:        A Qt plot widget with MATLAB-style interface
 
 License:        MIT
 URL:            https://gitlab.com/qdaq/qmatplotwidget
-Source0:        %{name}-%{version}.tar.gz
+Source0:        %{name}-v%{version}.tar.gz
 
 BuildRequires:  cmake >= 3.16
-BuildRequires:  gcc-c++
-BuildRequires:  make
-BuildRequires:  pkgconfig
 BuildRequires:  qt5-qtbase-devel
 BuildRequires:  qwt-qt5-devel
 
@@ -28,8 +25,15 @@ QMatPlotWidget is a Qt-based plotting widget that provides a MATLAB-style
 interface. This package installs the library, headers and CMake config files
 so other CMake projects can find_package(QMatPlotWidget CONFIG REQUIRED).
 
+%package devel
+Summary:        Development files for QMatPlotWidget
+Requires:       %{name} = %{version}-%{release}
+Requires:       qwt-qt5-devel
+%description devel
+%{summary}.
+
 %prep
-%setup -q
+%setup -q -n %{name}-v%{version}
 
 %build
 %{cmake}
@@ -45,6 +49,8 @@ rm -rf %{buildroot}
 %files 
 %doc README.md
 %license LICENSE
+
+%files devel
 # headers
 %{_includedir}/qmatplotwidget.h
 %{_includedir}/QMatPlotWidget
