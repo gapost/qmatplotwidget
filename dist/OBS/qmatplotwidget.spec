@@ -7,8 +7,7 @@ Version:        0
 Release:        0
 Summary:        Qt plot widget
 License:        GPL-3.0-or-later
-Group:          Productivity/Scientific/Physics
-Url:            https://github.com/ir2-lab/libdedx.git
+Url:            https://github.com/gapost/qmatplotwidget.git
 
 Source0:        %{name}.tar.gz
 
@@ -45,12 +44,11 @@ A Qt plot widget with a MATLAB/OCTAVE-like interface
 
 %package        devel
 Summary:        Development files for %{name}
-Group:          Development/Languages/C and C++
 
 Requires:       %{name}
 
 %description    devel
-Development Qt plot widget with a MATLAB/OCTAVE-like interface.
+Development files for Qt plot widget with a MATLAB/OCTAVE-like interface.
 
 %prep
 %setup -q -n    %{name}
