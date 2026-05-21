@@ -13,24 +13,19 @@ BuildRequires:  cmake >= 3.16
 BuildRequires:  qt5-qtbase-devel
 BuildRequires:  qwt-qt5-devel
 
-# Runtime requires (adjust package names for your distribution if necessary)
 Requires:       qt5-qtbase
 Requires:       qwt-qt5
 
-# If the project installs static libraries only, keep BuildArch default (no change).
-# BuildArch:    x86_64
-
 %description
 QMatPlotWidget is a Qt-based plotting widget that provides a MATLAB-style
-interface. This package installs the library, headers and CMake config files
-so other CMake projects can find_package(QMatPlotWidget CONFIG REQUIRED).
+interface. This package installs the shared library.
 
 %package devel
 Summary:        Development files for QMatPlotWidget
 Requires:       %{name} = %{version}-%{release}
-Requires:       qwt-qt5-devel
+Requires:       qt5-qtbase-devel
 %description devel
-%{summary}.
+Headers and CMake config files for building software that uses QMatPlotWidget.
 
 %prep
 %setup -q -n %{name}-v%{version}
@@ -43,22 +38,23 @@ Requires:       qwt-qt5-devel
 rm -rf %{buildroot}
 %{cmake_install}
 
-# Provide CMake package config and FindQwt.cmake if present
-# (these should have been installed under %{_libdir}/cmake/qmatplotwidget)
+%post -p /sbin/ldconfig
+%postun -p /sbin/ldconfig
 
-%files 
+%files
 %doc README.md
 %license LICENSE
+%{_libdir}/libQMatPlotWidget.so.0*
 
 %files devel
-# headers
 %{_includedir}/qmatplotwidget.h
+%{_includedir}/qmatplotwidget_export.h
 %{_includedir}/QMatPlotWidget
-# library (static or shared)
-%{_libdir}/libQMatPlotWidget.*
-# CMake package config and exported targets
-%{_libdir}/cmake/QMatPlotWidget/*
+%{_libdir}/libQMatPlotWidget.so
+%{_libdir}/cmake/QMatPlotWidget/
 
 %changelog
+* Thu May 21 2026 GA
+- Switch to shared library
 * Thu Jan 01 2026 GA
 - Initial RPM spec for QMatPlotWidget

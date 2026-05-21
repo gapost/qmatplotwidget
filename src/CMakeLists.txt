@@ -1,15 +1,26 @@
-add_library(${PROJECT_NAME} STATIC
+add_library(${PROJECT_NAME} SHARED
     qmatplotwidget.cpp
     qmatplotwidget.h
     qmatplotwidget_p.h
     colormap.cpp
-    qwtbackend.h 
+    qwtbackend.h
     qwtbackend.cpp
+)
+
+include(GenerateExportHeader)
+generate_export_header(${PROJECT_NAME})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN ON
 )
 
 set(INSTALL_HEADERS
     qmatplotwidget.h
     QMatPlotWidget
+    ${CMAKE_CURRENT_BINARY_DIR}/qmatplotwidget_export.h
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -23,6 +34,7 @@ target_link_libraries(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
@@ -71,7 +83,6 @@ configure_package_config_file(
 install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindQwt.cmake"
   DESTINATION "${CONFIG_INSTALL_DIR}"
 )
 
