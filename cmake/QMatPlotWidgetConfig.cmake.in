@@ -3,13 +3,8 @@
 # Allow finding dependencies using find_dependency()
 include(CMakeFindDependencyMacro)
 
-# Make any packaged Find<Package>.cmake modules available to consumers
-# (we install FindQwt.cmake next to this config file)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
-
 # Ensure the same Qt major version is found as was used to build the library.
 find_dependency(Qt5 COMPONENTS Widgets REQUIRED)
-find_dependency(Qwt REQUIRED)
 
 # Import the exported targets (installed alongside this file)
 include("${CMAKE_CURRENT_LIST_DIR}/QMatPlotWidgetTargets.cmake")

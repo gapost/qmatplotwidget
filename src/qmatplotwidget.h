@@ -1,6 +1,8 @@
 #ifndef _QMATPLOTWIDGET_H_
 #define _QMATPLOTWIDGET_H_
 
+#include "qmatplotwidget_export.h"
+
 #include <QPointF>
 #include <QRectF>
 #include <QVector>
@@ -12,7 +14,7 @@ struct AbstractDataSeriesAdaptor;
 struct AbstractErrorBarAdaptor;
 struct AbstractImageAdaptor;
 
-class QMatPlotWidget : public QWidget
+class QMATPLOTWIDGET_EXPORT QMatPlotWidget : public QWidget
 {
     Q_OBJECT
 

@@ -62,17 +62,17 @@ Development files for Qt plot widget with a MATLAB/OCTAVE-like interface.
 %install
 %cmake_install
 
-%post
-/sbin/ldconfig
+%post -p /sbin/ldconfig
+%postun -p /sbin/ldconfig
 
-%postun
-/sbin/ldconfig
-
-%files devel
+%files
 %license LICENSE
 %doc README.md
-%{_libdir}/lib*.a
+%{_libdir}/libQMatPlotWidget.so.0*
+
+%files devel
 %{_includedir}/*
+%{_libdir}/libQMatPlotWidget.so
 %dir %{_libdir}/cmake/QMatPlotWidget
 %{_libdir}/cmake/QMatPlotWidget/*.cmake
 

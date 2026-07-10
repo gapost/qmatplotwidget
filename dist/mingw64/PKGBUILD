@@ -1,0 +1,65 @@
+# Maintainer: George Apostolopoulos <gapost@ipta.demokritos.gr>
+
+_realname=qmatplotwidget
+pkgbase=mingw-w64-${_realname}
+pkgname=(
+  "${MINGW_PACKAGE_PREFIX}-${_realname}"
+  "${MINGW_PACKAGE_PREFIX}-${_realname}-devel"
+)
+pkgver=0.2.0
+pkgrel=1
+pkgdesc="A Qt plot widget with MATLAB-style interface"
+arch=('any')
+mingw_arch=('ucrt64')
+url="https://gitlab.com/qdaq/qmatplotwidget"
+license=('spdx:MIT')
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
+  "${MINGW_PACKAGE_PREFIX}-qt5-base"
+  "${MINGW_PACKAGE_PREFIX}-qt5-svg"
+  "${MINGW_PACKAGE_PREFIX}-qwt-qt5"
+)
+source=("${_realname}-${pkgver}.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+  cmake -G Ninja \
+    -S "${srcdir}/${_realname}-${pkgver}" \
+    -B "${srcdir}/build-${MSYSTEM}" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}"
+
+  cmake --build "${srcdir}/build-${MSYSTEM}"
+
+  DESTDIR="${srcdir}/destdir" cmake --install "${srcdir}/build-${MSYSTEM}"
+}
+
+package_mingw-w64-ucrt-x86_64-qmatplotwidget() {
+  pkgdesc="A Qt plot widget with MATLAB-style interface (runtime)"
+  depends=(
+    "${MINGW_PACKAGE_PREFIX}-qt5-base"
+    "${MINGW_PACKAGE_PREFIX}-qt5-svg"
+    "${MINGW_PACKAGE_PREFIX}-qwt-qt5"
+  )
+
+  install -dm755 "${pkgdir}${MINGW_PREFIX}/bin"
+  install -m755 "${srcdir}/destdir${MINGW_PREFIX}/bin/"*.dll \
+    "${pkgdir}${MINGW_PREFIX}/bin/"
+
+  install -Dm644 "${srcdir}/${_realname}-${pkgver}/LICENSE" \
+    "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
+}
+
+package_mingw-w64-ucrt-x86_64-qmatplotwidget-devel() {
+  pkgdesc="A Qt plot widget with MATLAB-style interface (development)"
+  depends=("${MINGW_PACKAGE_PREFIX}-${_realname}=${pkgver}-${pkgrel}")
+  options=('staticlibs')
+
+  mkdir -p "${pkgdir}${MINGW_PREFIX}"
+  cp -r "${srcdir}/destdir${MINGW_PREFIX}/include" \
+    "${pkgdir}${MINGW_PREFIX}/"
+  cp -r "${srcdir}/destdir${MINGW_PREFIX}/lib" \
+    "${pkgdir}${MINGW_PREFIX}/"
+}
