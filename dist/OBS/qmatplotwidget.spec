@@ -44,6 +44,8 @@ A Qt plot widget with a MATLAB/OCTAVE-like interface
 %package        devel
 Summary:        Development files for %{myname}
 
+Requires:       %{name}
+
 %description    devel
 Development files for Qt plot widget with a MATLAB/OCTAVE-like interface.
 
